@@ -1,0 +1,9 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SmartOrder API Gateway",
+    "description": "Welcome to the SmartOrder system. Select an API from the menu to get started.",
+    "version": "1.0.0-SNAPSHOT"
+  },
+  "paths": {}
+}

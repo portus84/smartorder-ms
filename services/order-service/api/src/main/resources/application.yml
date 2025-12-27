@@ -1,0 +1,51 @@
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%line - %msg%n"
+  level:
+    it.portus: DEBUG
+    it.portus.smartorder.ms.orderservice.api.mappers: WARN
+    it.portus.smartorder.ms.orderservice.api.hateoas: WARN
+
+server:
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: order-service-api
+  main:
+    lazy-initialization: true
+  jackson:
+    default-property-inclusion: non_null
+  config:
+    import:
+      - "optional:classpath:business-application.yml"
+      - "optional:consul:"
+  cloud:
+    consul:
+      enabled: true
+      retry:
+        max-attempts: 1
+      discovery:
+        prefer-ip-address: true
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        fail-fast: false
+        catalog-services-watch-delay: 60000
+        catalog-services-watch-timeout: 1
+      config:
+        fail-fast: false
+        watch:
+          enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+springdoc:
+  #writer-with-order-by-keys: true
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    version: openapi_3_0

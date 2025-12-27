@@ -1,0 +1,4 @@
+it.portus.smartorder.ms.orderservice.business.conf.BusinessAutoConfiguration
+it.portus.smartorder.ms.orderservice.business.conf.MongoAutoConfiguration
+it.portus.smartorder.ms.orderservice.business.conf.DroolsConfiguration
+it.portus.smartorder.ms.orderservice.business.conf.CacheConfiguration

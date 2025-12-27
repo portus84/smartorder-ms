@@ -1,0 +1,6 @@
+it.portus.ms.commons.config.CommonsAutoConfiguration
+it.portus.ms.commons.config.HateoasConfiguration
+it.portus.ms.commons.config.JacksonAutoConfiguration
+it.portus.ms.commons.config.LoggingAspectAutoConfiguration
+it.portus.ms.commons.config.MongoMappersConfiguration
+it.portus.ms.commons.config.OpenApiCustomizerConfiguration

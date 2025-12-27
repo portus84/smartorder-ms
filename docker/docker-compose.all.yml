@@ -1,0 +1,55 @@
+name: smartorder
+
+x-event-hub-env: &x-event-hub-env
+  RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER:-guest}"
+  RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS:-guest}"
+  RABBITMQ_HOST: "${RABBITMQ_HOST:-rabbitmq}"
+  RABBITMQ_PORT: "${RABBITMQ_PORT:-5672}"
+  RABBITMQ_BINDER_ADMIN_ADDRESS: "${RABBITMQ_BINDER_ADMIN_ADDRESS:-rabbitmq:15672}"
+
+networks:
+  smartorder-net:
+    name: smartorder-net
+    driver: bridge
+
+services:
+  consul:
+    image: hashicorp/consul:1.22
+    container_name: consul
+    labels:
+      dozzle: true
+    command: "agent -dev -client=0.0.0.0 -data-dir=/consul/data"
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      - smartorder-net
+    tmpfs:
+      - /consul/data
+    healthcheck:
+      test: [ "CMD", "consul", "members" ]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Web management port
+    networks:
+      - smartorder-net
+    environment:
+      <<: *x-event-hub-env
+    tmpfs:
+      - /var/lib/rabbitmq
+    restart: unless-stopped
+
+include:
+  - ./docker-compose.persistence.yml
+  - ./docker-compose.monitoring.yml
+  - ../gateway/docker/docker-compose.yml
+  - ../services/order-service/api/docker/docker-compose.yml
+  - ../services/inventory-service/api/docker/docker-compose.yml

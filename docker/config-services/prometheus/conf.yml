@@ -1,0 +1,38 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    monitor: 'smartorder-dev'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [ ]
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: [ 'localhost:9090' ]
+
+  - job_name: 'smartorder-consul-discovery'
+    consul_sd_configs:
+      - server: 'consul:8500'
+
+    relabel_configs:
+      - source_labels: [ ]
+        target_label: __metrics_path__
+        replacement: /actuator/prometheus
+
+      - source_labels: [ __meta_consul_service ]
+        target_label: job
+
+      - source_labels: [ __meta_consul_service ]
+        regex: ^(consul|mongo|rabbitmq|prometheus|grafana|dozzle|dashy)$$
+        action: drop
+
+      - source_labels: [ __meta_consul_service_id ]
+        target_label: instance
+
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: [ 'mongodb-exporter:9216' ]

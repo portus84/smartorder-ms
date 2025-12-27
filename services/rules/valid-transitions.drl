@@ -1,0 +1,24 @@
+package rules.order
+
+import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus
+import it.portus.smartorder.ms.orderservice.business.rules.order.strategy.impl.StatusTransitionStrategy.ValidTransition
+
+rule "Initialize valid transitions"
+salience 100
+ruleflow-group "validation"
+when
+then
+    // PENDING -> PENDING / CONFIRMED / CANCELLED
+    insert(new ValidTransition(OrderStatus.PENDING, OrderStatus.PENDING));
+    insert(new ValidTransition(OrderStatus.PENDING, OrderStatus.CONFIRMED));
+    insert(new ValidTransition(OrderStatus.PENDING, OrderStatus.CANCELLED));
+
+    // CONFIRMED -> CONFIRMED / SHIPPED / CANCELLED
+    insert(new ValidTransition(OrderStatus.CONFIRMED, OrderStatus.CONFIRMED));
+    insert(new ValidTransition(OrderStatus.CONFIRMED, OrderStatus.SHIPPED));
+    insert(new ValidTransition(OrderStatus.CONFIRMED, OrderStatus.CANCELLED));
+
+    // SHIPPED -> SHIPPED / DELIVERED
+    insert(new ValidTransition(OrderStatus.SHIPPED, OrderStatus.SHIPPED));
+    insert(new ValidTransition(OrderStatus.SHIPPED, OrderStatus.DELIVERED));
+end

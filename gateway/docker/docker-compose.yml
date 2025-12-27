@@ -1,0 +1,39 @@
+name: smartorder
+
+x-spring-consul-env: &x-spring-consul-env
+  SPRING_CLOUD_CONSUL_ENABLED: "${SPRING_CLOUD_CONSUL_ENABLED:-true}"
+  SPRING_CLOUD_CONSUL_HOST: "${SPRING_CLOUD_CONSUL_HOST:-consul}"
+  SPRING_CLOUD_CONSUL_PORT: "${SPRING_CLOUD_CONSUL_PORT:-8500}"
+
+x-environment: &x-environment
+  <<: *x-spring-consul-env
+
+networks:
+  smartorder-net:
+    name: smartorder-net
+    driver: bridge
+
+services:
+  gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      cache_from: [ ]
+    container_name: smartorder-gateway
+    labels:
+      dozzle: true
+    environment:
+      <<: *x-environment
+    ports:
+      - "8085:8080"
+    depends_on:
+      - consul
+    networks:
+      - smartorder-net
+    healthcheck:
+      test: [ "CMD", "wget", "-no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: no

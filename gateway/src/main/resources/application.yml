@@ -1,0 +1,108 @@
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.filter: DEBUG
+    org.springframework.cloud.gateway.route: DEBUG
+
+server:
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: smartorder-gateway
+  config:
+    import:
+      - "optional:consul:"
+  cloud:
+    consul:
+      enabled: true
+      discovery:
+        prefer-ip-address: true
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      globalCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+springdoc:
+  openapi-extract-server-urls: true
+  tags-sorter: alpha
+  operations-sorter: alpha
+  api-docs:
+    enabled: true
+    version: openapi_3_0
+  swagger-ui:
+    enabled: false
+    tags-sorter: alpha
+    operations-sorter: alpha
+    urls-primary-name: order-service
+    urls:
+      - name: Order API
+        url: /api-docs/order-service
+      - name: Inventory API
+        url: /api-docs/inventory-service
+
+scalar:
+  enabled: true
+  theme: purple
+  layout: modern
+  darkMode: true
+  url: /openapi-index.json
+  sources:
+    - url: /openapi-index.json
+      title: "🏠 Home"
+      slug: home
+    - url: /api-docs/order-service
+      title: "📦 Order API"
+      slug: order-service
+    - url: /api-docs/inventory-service
+      title: "🏢 Inventory API"
+      slug: inventory-service
+---
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          trusted-proxies: '[\s\S]*'
+          x-forwarded:
+            enabled: true
+          default-filters:
+            - SetRequestHeader=X-Forwarded-Prefix, /
+          routes:
+            - id: order-service-api-docs
+              uri: lb://order-service-api
+              predicates:
+                - Path=/api-docs/order-service
+              filters:
+                - RewritePath=/api-docs/order-service,/v3/api-docs
+            - id: inventory-service-api-docs
+              uri: lb://inventory-service-api
+              predicates:
+                - Path=/api-docs/inventory-service
+              filters:
+                - RewritePath=/api-docs/inventory-service,/v3/api-docs
+            - id: order-service-api
+              uri: lb://order-service-api
+              predicates:
+                - Path=/orders/**
+              filters:
+                - RewritePath=/orders(.*),/api/v1/orders$1
+            - id: inventory-service-api
+              uri: lb://inventory-service-api
+              predicates:
+                - Path=/inventories/**
+              filters:
+                - RewritePath=/inventories(.*),/api/v1/inventories$1

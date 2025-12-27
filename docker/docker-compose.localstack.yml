@@ -1,0 +1,25 @@
+name: smartorder-localstack
+
+networks:
+  smartorder-net:
+    name: smartorder-net
+    driver: bridge
+
+services:
+  # ---------- LocalStack ----------
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=dynamodb,rds
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    networks:
+      - smartorder-net
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      #- "./tmp/localstack/bootstrap:/docker-entrypoint-initaws.d"  # bootstrap script
+      - "./tmp/localstack/data:/var/lib/localstack"
+    restart: unless-stopped

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+    <hashTree>
+        <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="SmartOrder Load Test">
+            <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel"
+                         testclass="Arguments">
+                <collectionProp name="Arguments.arguments">
+                    <elementProp name="BASE_URL" elementType="Argument">
+                        <stringProp name="Argument.name">BASE_URL</stringProp>
+                        <stringProp name="Argument.value">${__P(gatewayUrl,smartorder-gateway)}</stringProp>
+                    </elementProp>
+                    <elementProp name="PORT" elementType="Argument">
+                        <stringProp name="Argument.name">PORT</stringProp>
+                        <stringProp name="Argument.value">8080</stringProp>
+                    </elementProp>
+                </collectionProp>
+            </elementProp>
+        </TestPlan>
+        <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+                <collectionProp name="HeaderManager.headers">
+                    <elementProp name="" elementType="Header">
+                        <stringProp name="Header.name">Content-Type</stringProp>
+                        <stringProp name="Header.value">application/json</stringProp>
+                    </elementProp>
+                    <elementProp name="" elementType="Header">
+                        <stringProp name="Header.name">Accept</stringProp>
+                        <stringProp name="Header.value">application/prs.hal-forms+json, application/json</stringProp>
+                    </elementProp>
+                </collectionProp>
+            </HeaderManager>
+            <hashTree />
+            <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Users Simulation">
+                <intProp name="ThreadGroup.num_threads">10</intProp>
+                <intProp name="ThreadGroup.ramp_time">5</intProp>
+                <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+                <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+                <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel"
+                             testclass="LoopController">
+                    <boolProp name="LoopController.continue_forever">false</boolProp>
+                    <stringProp name="LoopController.loops">5</stringProp>
+                </elementProp>
+            </ThreadGroup>
+            <hashTree>
+                <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Think Time">
+                    <stringProp name="ConstantTimer.delay">1000</stringProp>
+                </ConstantTimer>
+                <hashTree />
+                <GenericController guiclass="LogicControllerGui" testclass="GenericController"
+                                   testname="Order Service Flow" />
+                <hashTree>
+                    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                                      testname="POST Create Order">
+                        <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+                        <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+                        <stringProp name="HTTPSampler.path">/orders</stringProp>
+                        <stringProp name="HTTPSampler.method">POST</stringProp>
+                        <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                        <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                            <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                    <stringProp name="Argument.value">{&#xd;
+                                        &quot;description&quot;: &quot;Order created by JMeter - ${__UUID()}&quot;,&#xd;
+                                        &quot;state&quot;: { &quot;status&quot;: &quot;PENDING&quot; }&#xd;
+                                        }
+                                    </stringProp>
+                                </elementProp>
+                            </collectionProp>
+                        </elementProp>
+                    </HTTPSamplerProxy>
+                    <hashTree />
+                    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                                      testname="GET Orders List">
+                        <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+                        <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+                        <stringProp name="HTTPSampler.path">/orders</stringProp>
+                        <stringProp name="HTTPSampler.method">GET</stringProp>
+                        <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                            <collectionProp name="Arguments.arguments">
+                                <elementProp name="page" elementType="HTTPArgument">
+                                    <stringProp name="Argument.value">0</stringProp>
+                                </elementProp>
+                                <elementProp name="size" elementType="HTTPArgument">
+                                    <stringProp name="Argument.value">10</stringProp>
+                                </elementProp>
+                            </collectionProp>
+                        </elementProp>
+                    </HTTPSamplerProxy>
+                    <hashTree />
+                </hashTree>
+                <GenericController guiclass="LogicControllerGui" testclass="GenericController"
+                                   testname="Inventory Service Flow" />
+                <hashTree>
+                    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                                      testname="POST Create Inventory">
+                        <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+                        <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+                        <stringProp name="HTTPSampler.path">/inventories</stringProp>
+                        <stringProp name="HTTPSampler.method">POST</stringProp>
+                        <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                        <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                            <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                    <stringProp name="Argument.value">{&#xd;
+                                        &quot;description&quot;: &quot;Inventory item - ${__RandomString(5,ABCDE123)}&quot;,&#xd;
+                                        &quot;status&quot;: &quot;AVAILABLE&quot;&#xd;
+                                        }
+                                    </stringProp>
+                                </elementProp>
+                            </collectionProp>
+                        </elementProp>
+                    </HTTPSamplerProxy>
+                    <hashTree />
+                    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                                      testname="GET Inventories List">
+                        <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+                        <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+                        <stringProp name="HTTPSampler.path">/inventories</stringProp>
+                        <stringProp name="HTTPSampler.method">GET</stringProp>
+                    </HTTPSamplerProxy>
+                    <hashTree />
+                </hashTree>
+                <BackendListener guiclass="BackendListenerGui" testclass="BackendListener"
+                                 testname="InfluxDB 2 Listener">
+                    <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel"
+                                 testclass="Arguments">
+                        <collectionProp name="Arguments.arguments">
+                            <elementProp name="influxdbUrl" elementType="Argument">
+                                <stringProp name="Argument.name">influxDBURL</stringProp>
+                                <stringProp name="Argument.value">${__P(influxdbUrl)}</stringProp>
+                            </elementProp>
+                            <elementProp name="influxdbToken" elementType="Argument">
+                                <stringProp name="Argument.name">influxDBToken</stringProp>
+                                <stringProp name="Argument.value">${__P(influxdbToken)}</stringProp>
+                            </elementProp>
+                            <elementProp name="influxdbOrg" elementType="Argument">
+                                <stringProp name="Argument.name">influxDBOrganization</stringProp>
+                                <stringProp name="Argument.value">${__P(influxdbOrg)}</stringProp>
+                            </elementProp>
+                            <elementProp name="influxdbBucket" elementType="Argument">
+                                <stringProp name="Argument.name">influxDBBucket</stringProp>
+                                <stringProp name="Argument.value">${__P(influxdbBucket)}</stringProp>
+                            </elementProp>
+
+                            <elementProp name="influxDBMaxBatchSize" elementType="Argument">
+                                <stringProp name="Argument.name">influxDBMaxBatchSize</stringProp>
+                                <stringProp name="Argument.value">2000</stringProp>
+                            </elementProp>
+                            <elementProp name="influxDBFlushInterval" elementType="Argument">
+                                <stringProp name="Argument.name">influxDBFlushInterval</stringProp>
+                                <stringProp name="Argument.value">4000</stringProp>
+                            </elementProp>
+
+                            <elementProp name="responseBodyLength" elementType="Argument">
+                                <stringProp name="Argument.name">responseBodyLength</stringProp>
+                                <stringProp name="Argument.value">0</stringProp>
+                            </elementProp>
+                            <elementProp name="application" elementType="Argument">
+                                <stringProp name="Argument.name">application</stringProp>
+                                <stringProp name="Argument.value">smartorder</stringProp>
+                            </elementProp>
+                        </collectionProp>
+                    </elementProp>
+                    <stringProp name="classname">
+                        io.github.mderevyankoaqa.influxdb2.visualizer.InfluxDatabaseBackendListenerClient
+                    </stringProp>
+                </BackendListener>
+                <hashTree />
+            </hashTree>
+        </hashTree>
+    </hashTree>
+</jmeterTestPlan>

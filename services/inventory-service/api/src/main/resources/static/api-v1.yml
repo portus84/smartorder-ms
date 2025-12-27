@@ -1,0 +1,516 @@
+openapi: 3.0.4
+info:
+  title: Inventory Management Service
+  description: |
+    The **Inventory Management Service** provides a RESTful API for managing and 
+    retrieving customer inventories.
+    This API is typically used by internal services and frontend applications 
+    to retrieve and display Inventory data in real time.
+  termsOfService: https://example.com/terms
+  contact:
+    name: API Support Team
+    url: https://example.com/support
+    email: support@example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development Server
+  - url: https://api.example.com/api/v1
+    description: Production Server
+  - url: https://staging-api.example.com/api/v1
+    description: Staging Server
+tags:
+  - name: Inventories
+    description: "API endpoints related to Inventory retrieval and management."
+
+security:
+  - bearerAuth: [ ]
+
+paths:
+  /inventories:
+    get:
+      tags:
+        - Inventories
+      summary: "Retrieve Inventories"
+      operationId: getInventories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: "Success"
+          x-spring-page-type: it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory
+          x-hateoas: true
+          content:
+            application/prs.hal-forms+json:
+              schema:
+                $ref: '#/components/schemas/PageInventory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Inventories
+      summary: "Add a new Inventory"
+      operationId: addInventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInventoryRequest'
+        required: true
+      responses:
+        '201':
+          description: "Created"
+          x-hateoas: true
+          headers:
+            Location:
+              description: "URI of the newly created Inventory resource"
+              schema:
+                type: string
+                example: /inventories/507f1f77bcf86cd799439011
+          content:
+            application/prs.hal-forms+json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+  /inventories/{id}:
+    get:
+      tags:
+        - Inventories
+      summary: "Retrieve Inventory by id"
+      operationId: getInventoryById
+      parameters:
+        - name: id
+          in: path
+          description: ID of Inventory to return
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          description: "Success"
+          x-hateoas: true
+          content:
+            application/prs.hal-forms+json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EntityNotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Inventories
+      summary: "Update an existing Inventory"
+      operationId: updateInventory
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the Inventory to update"
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryRequest'
+      responses:
+        '200':
+          description: "Inventory successfully updated"
+          x-hateoas: true
+          content:
+            application/prs.hal-forms+json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EntityNotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Inventories
+      summary: "Delete an existing Inventory"
+      operationId: deleteInventory
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the Inventory to delete"
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: "Inventory successfully deleted. No content returned."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EntityNotFound'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      tags:
+        - Inventories
+      summary: "Partially update an existing Inventory using JSON Patch (RFC 6902)"
+      operationId: patchInventory
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the Inventory to partially update"
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryPatchRequest'
+      responses:
+        '200':
+          description: "Inventory successfully patched"
+          x-hateoas: true
+          content:
+            application/prs.hal-forms+json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/EntityNotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  responses:
+    BadRequest:
+      description: "Bad Request - invalid request parameters."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: "Unauthorized – missing or invalid credentials."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnprocessableEntity:
+      description: "Unprocessable Entity – validation errors occurred."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    EntityNotFound:
+      description: "Entity not found."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: "Internal Server Error – unexpected error occurred."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: "Zero-based page number"
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    Size:
+      name: size
+      in: query
+      description: "Number of items per page (default is 20, max 100)."
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    Sort:
+      name: sort
+      in: query
+      description: "Sorting criteria in format: property,direction (e.g., 'id,desc'). Multiple sort criteria supported."
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: true
+      examples:
+        single:
+          summary: Single sort
+          value: [ "id,asc" ]
+        multiple:
+          summary: Multiple sorts
+          value: [ "id,desc", "description,asc" ]
+
+  schemas:
+    ID:
+      type: string
+      description: "The identifier is a standard UUID (RFC 4122)."
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+
+    Inventory:
+      required:
+        - id
+        - description
+      allOf:
+        - $ref: "#/components/schemas/RepresentationModel"
+      properties:
+        id:
+          $ref: "#/components/schemas/ID"
+        description:
+          type: string
+          example: "Customer order for product SKU-12345"
+        createdDate:
+          type: string
+          format: date-time
+          description: "Date and time when the inventory was created."
+        lastModifiedDate:
+          type: string
+          format: date-time
+          description: "Date and time when the inventory was modified."
+        status:
+          $ref: "#/components/schemas/InventoryStatus"
+
+    InventoryStatus:
+      type: string
+      description: "Current status of the inventory."
+      enum: [ PENDING, AVAILABLE, RESERVED, OUT_OF_STOCK, DISCONTINUED ]
+      example: "CONFIRMED"
+
+    CreateInventoryRequest:
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          example: "Customer order for product SKU-12345"
+        status:
+          $ref: "#/components/schemas/InventoryStatus"
+
+    UpdateInventoryRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateInventoryRequest'
+
+    InventoryDetailsPatchOperation:
+      description: "Operation to update general inventory details."
+      required:
+        - operation
+        - details
+      properties:
+        operation:
+          $ref: '#/components/schemas/InventoryPatchRequestOperation'
+        details:
+          required:
+            - description
+          properties:
+            description:
+              type: string
+      example:
+        operation: UPDATE_DETAILS
+        details:
+          properties: "Customer order for product SKU-12345 (Updated)"
+
+    InventoryStatusPatchOperation:
+      description: "Operation to update the inventory status."
+      required:
+        - operation
+        - status
+      properties:
+        operation:
+          $ref: '#/components/schemas/InventoryPatchRequestOperation'
+        status:
+          $ref: "#/components/schemas/InventoryStatus"
+      example:
+        operation: UPDATE_STATUS
+        status: "PENDING"
+
+    InventoryPatchRequestOperation:
+      type: string
+      enum:
+        - UPDATE_DETAILS
+        - UPDATE_STATUS
+      example: UPDATE_DETAILS | UPDATE_STATUS
+      description: >
+        dictionary:
+          * UPDATE_DETAILS
+          * UPDATE_STATUS
+
+    InventoryPatchRequest:
+      description: "Request body for partial update, grouped into two logical operations, using exactly one of the defined operations (XOR)."
+      required:
+        - operation
+      properties:
+        operation:
+          $ref: '#/components/schemas/InventoryPatchRequestOperation'
+      oneOf:
+        - $ref: '#/components/schemas/InventoryDetailsPatchOperation'
+        - $ref: '#/components/schemas/InventoryStatusPatchOperation'
+      discriminator:
+        propertyName: operation
+        mapping:
+          UPDATE_DETAILS: '#/components/schemas/InventoryDetailsPatchOperation'
+          UPDATE_STATUS: '#/components/schemas/InventoryStatusPatchOperation'
+
+    PageInventory:
+      allOf:
+        - $ref: "#/components/schemas/PagedModel"
+      properties:
+        _embedded:
+          properties:
+            inventories:
+              type: array
+              items:
+                $ref: '#/components/schemas/Inventory'
+
+    RepresentationModel:
+      properties:
+        _links:
+          $ref: '#/components/schemas/Links'
+
+    PagedModel:
+      allOf:
+        - $ref: "#/components/schemas/RepresentationModel"
+      properties:
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+
+    PageMetadata:
+      description: "Pagination metadata."
+      properties:
+        size:
+          description: "Amount of items on this page."
+          type: number
+        totalElements:
+          description: "Total number of items available."
+          type: number
+        totalPages:
+          description: "Total number of pages."
+          type: number
+        number:
+          description: "Current page number (zero-based)."
+          type: number
+
+    Links:
+      description: "HATEOAS Links"
+      additionalProperties:
+        $ref: "#/components/schemas/Link"
+      example:
+        self:
+          $ref: "#/components/examples/FullLinkExample"
+
+    Link:
+      description: "Represents a single HATEOAS link, providing relational information and URL to another resource, compliant with the RFC 8288 Web Linking specification."
+      properties:
+        href:
+          type: string
+          description: "The **required** target URI of the link. This may contain URI template variables if 'templated' is true."
+        hreflang:
+          type: string
+          description: "A hint indicating the **language** of the target resource, specified as a BCP47 language tag (e.g., 'en-US')."
+        title:
+          type: string
+          description: "A **human-readable title** for the link, often used to describe its purpose to consumers."
+        type:
+          type: string
+          description: "The **media type** (MIME type) of the resource targeted by the link (e.g., 'application/json', 'image/png')."
+        deprecation:
+          type: string
+          description: "A URI that points to a document describing the **deprecation** of the link's target. Used for API versioning and evolution."
+        profile:
+          type: string
+          description: "A URI that refers to a **profile** (e.g., a documentation or schema artifact) describing the target resource format."
+        name:
+          type: string
+          description: "An optional **name** for the link, used to distinguish multiple links that share the same relation (rel) value."
+        templated:
+          type: boolean
+          description: "A boolean indicating if the 'href' value is a **URI Template** (RFC 6570) containing variables (e.g., '/resources/{id}')."
+      example:
+        $ref: "#/components/examples/FullLinkExample"
+
+    ErrorResponse:
+      description: "Standard error response model."
+      properties:
+        errorCode:
+          type: string
+          example: "VALIDATION_ERROR"
+        errorMessage:
+          type: string
+          example: "The request parameters are invalid."
+        detailMessage:
+          type: string
+          example: "Parameter 'size' must be between 1 and 100."
+
+  examples:
+    FullLinkExample:
+      summary: "HATEOAS Link Example"
+      value:
+        href: "https://api.example.com/resources/id"
+        hreflang: "en-US"
+        title: "Detailed Resource"
+        type: "application/hal+json"
+        deprecation: "https://api.example.com/api/v1/resources"
+        profile: "https://example.com/resources/resource-detail"
+        name: "resource"
+        templated: false
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

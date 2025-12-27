@@ -1,0 +1,39 @@
+name: smartorder
+
+x-event-hub-env: &x-event-hub-env
+  RABBITMQ_DEFAULT_USER: &RABBITMQ_DEFAULT_USER "${RABBITMQ_DEFAULT_USER:-guest}"
+  RABBITMQ_DEFAULT_PASS: &RABBITMQ_DEFAULT_PASS "${RABBITMQ_DEFAULT_PASS:-guest}"
+  RABBITMQ_HOST: &RABBITMQ_HOST "${RABBITMQ_HOST:-rabbitmq}"
+  RABBITMQ_PORT: &RABBITMQ_PORT "${RABBITMQ_PORT:-5672}"
+  RABBITMQ_BINDER_ADMIN_ADDRESS: &RABBITMQ_BINDER_ADMIN_ADDRESS "${RABBITMQ_BINDER_ADMIN_ADDRESS:-rabbitmq:15672}"
+
+x-spring-consul-env: &x-spring-consul-env
+  SPRING_CLOUD_CONSUL_ENABLED: "${SPRING_CLOUD_CONSUL_ENABLED:-true}"
+  SPRING_CLOUD_CONSUL_HOST: "${SPRING_CLOUD_CONSUL_HOST:-consul}"
+  SPRING_CLOUD_CONSUL_PORT: "${SPRING_CLOUD_CONSUL_PORT:-8500}"
+
+x-environment: &x-environment
+  <<: *x-spring-consul-env
+  SPRING_RABBIT_HOST: *RABBITMQ_HOST
+  SPRING_RABBIT_PORT: *RABBITMQ_PORT
+  SPRING_RABBIT_USERNAME: *RABBITMQ_DEFAULT_USER
+  SPRING_RABBIT_PASSWORD: *RABBITMQ_DEFAULT_PASS
+  SPRING_CLOUD_STREAM_RABBIT_BINDER_ADMIN_ADDRESS: *RABBITMQ_BINDER_ADMIN_ADDRESS
+
+services:
+  inventory-service-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      cache_from: [ ]
+    container_name: inventory-service-api
+    labels:
+      dozzle: true
+    environment:
+      <<: *x-environment
+    depends_on:
+      - consul
+      - rabbitmq
+    networks:
+      - smartorder-net
+    restart: no

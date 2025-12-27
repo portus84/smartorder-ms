@@ -1,0 +1,27 @@
+package rules.order
+
+import it.portus.smartorder.ms.orderservice.business.domain.model.Order
+import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus
+import it.portus.smartorder.ms.orderservice.business.rules.order.strategy.impl.StatusTransitionStrategy.OrderTransition
+import it.portus.smartorder.ms.orderservice.business.rules.order.strategy.impl.StatusTransitionStrategy.ValidTransition
+
+global org.slf4j.Logger logger;
+
+rule "Soft delete order"
+ruleflow-group "processing"
+when
+    $order : Order( $id : id )
+    $trans : OrderTransition( orderId == $id, targetStatus == OrderStatus.CANCELLED )
+then
+    $order.setStatus(OrderStatus.CANCELLED);
+end
+
+rule "Apply valid transition"
+ruleflow-group "processing"
+when
+    $order : Order( $id : id, $current : status )
+    $trans : OrderTransition( orderId == $id, $target : targetStatus )
+    ValidTransition( current == $current, next == $target )
+then
+    $order.setStatus($target);
+end

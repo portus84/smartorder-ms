@@ -1,0 +1,40 @@
+name: smartorder
+
+x-mongodb-exporter-env: &x-mongodb-exporter-env
+  MONGODB_URI: "mongodb://mongo:27017"
+
+networks:
+  smartorder-net:
+    name: smartorder-net
+    driver: bridge
+
+services:
+  mongo:
+    image: mongo:8.2.2
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - smartorder-net
+    tmpfs:
+      - /data/db
+      - /data/configdb
+    restart: unless-stopped
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.47.2
+    container_name: mongodb-exporter
+    labels:
+      dozzle: true
+    networks:
+      - smartorder-net
+    environment:
+      <<: *x-mongodb-exporter-env
+    command:
+      - "--collect-all"
+      - "--compatible-mode"
+    ports:
+      - "9216:9216"
+    depends_on:
+      - mongo
+    restart: always

@@ -1,0 +1,17 @@
+package rules.order
+
+import it.portus.smartorder.ms.orderservice.business.domain.model.Order
+import it.portus.smartorder.ms.orderservice.business.rules.order.strategy.model.OrderTransition
+import it.portus.smartorder.ms.orderservice.business.rules.order.strategy.model.ValidTransition
+
+rule "Invalid transition"
+ruleflow-group "validation"
+when
+    $order : Order( $id : id, $current : state.status )
+    $trans : OrderTransition( orderId == $id, $target : targetStatus )
+    not ValidTransition( current == $current, next == $target )
+then
+    throw new RuntimeException(
+        "Invalid transition from " + $current + " to " + $target
+    );
+end

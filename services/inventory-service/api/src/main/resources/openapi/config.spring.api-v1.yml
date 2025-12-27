@@ -1,0 +1,55 @@
+sourceFolder: src/gen/java
+
+#ignoreFileOverride: ../.openapi-generator-ignore
+
+apiPackage: it.portus.smartorder.ms.invservice.api.v1.openapi
+modelPackage: it.portus.smartorder.ms.invservice.api.v1.openapi.model
+invokerPackage: it.portus.smartorder.ms.invservice.api.v1.openapi.invoker
+configPackage: it.portus.smartorder.ms.invservice.api.v1.openapi.configuration
+
+openapiNormalizer:
+  REF_AS_PARENT_IN_ALLOF: true
+  SIMPLIFY_ONEOF_ANYOF: true
+  SIMPLIFY_BOOLEAN_ENUM: true
+
+useSpringBoot3: true
+useTags: true
+useJakartaEe: true
+#hateoas: true
+delegatePattern: true
+openApiNullable: false
+performBeanValidation: true
+useBeanValidation: true
+dateLibrary: java8-localdatetime
+
+hideGenerationTimestamp: true
+
+generateApiTests: false
+generateModelTests: false
+
+additionalModelTypeAnnotations: |
+  @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+  @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+#  @lombok.NoArgsConstructor
+#  @lombok.AllArgsConstructor
+
+importMappings:
+  ErrorResponse: it.portus.ms.commons.dto.ErrorResponse
+
+typeMappings:
+  ErrorResponse: it.portus.ms.commons.dto.ErrorResponse
+
+inlineSchemaNameMappings:
+  #Pageable_sort: Sort
+  #Pageable_sort_inventories_inner: SortOrder
+  InventoryOrder_allOf__embedded: PageOrderEmbedded
+
+schemaMappings:
+  ErrorResponse: it.portus.ms.commons.dto.ErrorResponse
+  PageMetadata: it.portus.ms.commons.dto.PageMetadata
+  #Sort: org.springframework.data.domain.Sort
+  #InventoryOrder: org.springframework.data.domain.Sort.Order
+  RepresentationModel: org.springframework.hateoas.RepresentationModel
+  PagedModel: org.springframework.hateoas.PagedModel
+  Links: org.springframework.hateoas.Links
+  Link: org.springframework.hateoas.Link

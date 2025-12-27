@@ -1,0 +1,67 @@
+spring:
+  datasource:
+    embedded-database-connection: h2
+  jpa:
+    open-in-view: false
+    generate-ddl: true
+    show-sql: true
+    properties:
+      hibernate.globally_quoted_identifiers: true
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    function:
+      definition: orderCreatedConsumer
+    stream:
+      default-content-type: application/cloudevents+json
+      function:
+        bindings:
+          orderCreatedConsumer-in-0: consumeOrderCreated
+      bindings:
+        default:
+          consumer:
+            max-attempts: 10
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+          producer:
+            max-attempts: 10
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+            auto-bind-dlq: true
+            delivery-mode: PERSISTENT
+        # ------------------------------------------------
+        consumeOrderCreated:
+          destination: pending-orders
+          group: inventory-group
+        publishOrderConfirmed:
+          destination: inventory-confirmed-orders
+          producer:
+            requiredGroups: order-group
+        publishOrderOutOfStock:
+          destination: inventory-out-of-stock-orders
+          producer:
+            requiredGroups: order-group
+      rabbit:
+        binder:
+          adminAddresses: rabbitmq:5672
+
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.cloud.function: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  rabbitmq:
+    host: localhost
+  h2:
+    console:
+      enabled: true

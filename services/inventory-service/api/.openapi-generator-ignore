@@ -1,0 +1,20 @@
+# existing patterns
+**/.github/**
+**/gradle/**
+**/.gradle/**
+**/docs/**
+**/.gitignore
+**/.travis.yml
+**/build.gradle
+**/build.sbt
+**/pom.xml
+**/settings.gradle
+**/gradlew
+**/gradlew.bat
+**/gradle.properties
+**/AndroidManifest.xml
+**/git_push.sh
+**/README.md
+**/.openapi-generator/**
+src/test/java/**
+!src/gen/java/**

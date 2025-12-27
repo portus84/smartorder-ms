@@ -1,0 +1,22 @@
+logging:
+  level:
+    root: debug
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.2
+
+spring:
+  cloud:
+    stream:
+      bindings:
+        orders-out-0:
+          destination: orders
+          producer:
+            max-attempts: 10
+            backOffInitialInterval: 1000
+            backOffMaxInterval: 10000
+            backOffMultiplier: 2.0
+            required-groups: orders-group

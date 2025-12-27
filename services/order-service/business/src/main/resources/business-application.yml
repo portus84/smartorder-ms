@@ -1,0 +1,70 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://mongodb:27017/db-smartorder
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    function:
+      definition: orderConfirmedConsumer;orderOutOfStockConsumer
+    stream:
+      default-content-type: application/cloudevents+json
+      function:
+        bindings:
+          orderConfirmedConsumer-in-0: consumeOrderConfirmed
+          orderOutOfStockConsumer-in-0: consumeOrderOutOfStock
+      bindings:
+        default:
+          consumer:
+            max-attempts: 10
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+          producer:
+            max-attempts: 10
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+            auto-bind-dlq: true
+            delivery-mode: PERSISTENT
+        # ------------------------------------------------
+        publishOrderCreated:
+          destination: pending-orders
+          producer:
+            required-groups: inventory-group
+        consumeOrderConfirmed:
+          destination: inventory-confirmed-orders
+          group: order-group
+        consumeOrderOutOfStock:
+          destination: inventory-out-of-stock-orders
+          group: order-group
+      rabbit:
+        binder:
+          admin-addresses: rabbitmq:5672
+
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.cloud.function: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/db-smartorder
+      port: 27017
+  rabbitmq:
+    host: localhost
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.2
+        storage:
+          repl-set-name: rs0

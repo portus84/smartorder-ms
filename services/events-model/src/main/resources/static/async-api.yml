@@ -1,0 +1,161 @@
+asyncapi: '3.0.0'
+
+info:
+  title: SmartOrder Event API
+  version: 1.0.0
+  description: Event-driven architecture for smartorder management
+
+servers:
+  rabbitmq:
+    host: rabbitmq:5672
+    protocol: amqp
+
+channels:
+  orderEventsChannel:
+    address: pending-orders
+    messages:
+      OrderCreatedMessage:
+        $ref: '#/components/messages/OrderCreatedMessage'
+
+  orderConfirmedCommandsChannel:
+    address: inventory-orders
+    messages:
+      OrderConfirmedMessage:
+        $ref: '#/components/messages/OrderConfirmedMessage'
+
+  orderOutOfStockCommandsChannel:
+    address: inventory-orders
+    messages:
+      OrderOutOfStockMessage:
+        $ref: '#/components/messages/OrderOutOfStockMessage'
+
+  inventoryOrderConfirmedEventsChannel:
+    address: inventory-orders
+    messages:
+      OrderConfirmedMessage:
+        $ref: '#/components/messages/OrderConfirmedMessage'
+
+  inventoryOrderOutOfStockEventsChannel:
+    address: inventory-orders
+    messages:
+      OrderOutOfStockMessage:
+        $ref: '#/components/messages/OrderOutOfStockMessage'
+
+  inventoryCommandsChannel:
+    address: pending-orders
+    messages:
+      OrderCreatedMessage:
+        $ref: '#/components/messages/OrderCreatedMessage'
+
+operations:
+  publishOrderCreated:
+    action: send
+    channel:
+      $ref: '#/channels/orderEventsChannel'
+
+  consumeOrderConfirmed:
+    action: receive
+    channel:
+      $ref: '#/channels/orderConfirmedCommandsChannel'
+
+  consumeOrderOutOfStock:
+    action: receive
+    channel:
+      $ref: '#/channels/orderOutOfStockCommandsChannel'
+
+  publishOrderConfirmed:
+    action: send
+    channel:
+      $ref: '#/channels/inventoryOrderConfirmedEventsChannel'
+
+  publishOrderOutOfStock:
+    action: send
+    channel:
+      $ref: '#/channels/inventoryOrderOutOfStockEventsChannel'
+
+  consumeOrderCreated:
+    action: receive
+    channel:
+      $ref: '#/channels/inventoryCommandsChannel'
+
+components:
+  messageTraits:
+    CloudEventHeaders:
+      headers:
+        properties:
+          ce-id:
+            type: string
+            description: Unique event ID
+          ce-source:
+            type: string
+            description: Event source URI, e.g., inventory-service
+          ce-specversion:
+            type: string
+            description: CloudEvents spec version
+            enum: [ "1.0" ]
+          ce-type:
+            type: string
+            description: Event type, e.g., OrderCreatedEvent
+          ce-subject:
+            type: string
+            description: Event subject, e.g., orderId
+          ce-time:
+            type: string
+            format: date-time
+            description: Event occurrence timestamp
+          correlationId:
+            type: string
+            description: Correlation ID for tracing
+        required: [ ce-id, ce-source, ce-specversion, ce-type ]
+
+  messages:
+    OrderCreatedMessage:
+      name: OrderCreatedEvent
+      contentType: application/cloudevents+json
+      traits:
+        - $ref: '#/components/messageTraits/CloudEventHeaders'
+      payload:
+        $ref: '#/components/schemas/OrderCreatedEvent'
+
+    OrderConfirmedMessage:
+      name: OrderConfirmedEvent
+      contentType: application/cloudevents+json
+      traits:
+        - $ref: '#/components/messageTraits/CloudEventHeaders'
+      payload:
+        $ref: '#/components/schemas/OrderConfirmedEvent'
+
+    OrderOutOfStockMessage:
+      name: OrderOutOfStockEvent
+      contentType: application/cloudevents+json
+      traits:
+        - $ref: '#/components/messageTraits/CloudEventHeaders'
+      payload:
+        $ref: '#/components/schemas/OrderOutOfStockEvent'
+
+  schemas:
+    OrderCreatedEvent:
+      properties:
+        orderId:
+          type: string
+          description: Unique order identifier
+      required: [ orderId ]
+
+    OrderAvailabilityEvent:
+      properties:
+        orderId:
+          type: string
+          description: Unique order identifier
+      required: [ orderId ]
+
+    OrderConfirmedEvent:
+      allOf:
+        - $ref: '#/components/schemas/OrderAvailabilityEvent'
+
+    OrderOutOfStockEvent:
+      allOf:
+        - $ref: '#/components/schemas/OrderAvailabilityEvent'
+        - type: object
+          properties:
+            reason:
+              type: string

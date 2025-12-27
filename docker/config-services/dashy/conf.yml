@@ -1,0 +1,22 @@
+pageInfo:
+  title: "SmartOrder Dashboard"
+  description: "Dashboard of SmartOrder services"
+
+appConfig:
+  theme: default
+  layout: vertical
+  iconSize: large
+
+sections:
+  - name: "Main Services"
+    items:
+      - title: "Dozzle"
+        url: "http://localhost:8180"
+      - title: "Consul"
+        url: "http://localhost:8500"
+      - title: "RabbitMQ"
+        url: "http://localhost:15672"
+      - title: "MongoDB"
+        url: "mongodb://localhost:27017"
+      - title: "Gateway"
+        url: "http://localhost:8085"

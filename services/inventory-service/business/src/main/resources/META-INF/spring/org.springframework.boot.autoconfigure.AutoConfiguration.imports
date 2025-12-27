@@ -1,0 +1,2 @@
+it.portus.smartorder.ms.invservice.business.conf.BusinessAutoConfiguration
+it.portus.smartorder.ms.invservice.business.conf.JpaAutoConfiguration
