@@ -50,6 +50,21 @@ The goal is to demonstrate enterprise-level architectural design and clean modul
 
 ---
 
+## Developer notes
+- API specifications (OpenAPI) for each service are included under each service's api module: services/*/api/src/main/resources/static/api-v1.yml. Use these when generating clients or for runtime docs.
+- ID formats differ between services and are reflected in their OpenAPI specs:
+  - order-service uses MongoDB ObjectId-style identifiers (24-character hex strings). Example pattern defined in the spec: `^[a-fA-F0-9]{24}$`.
+  - inventory-service uses standard UUIDs (RFC 4122) for resource IDs.
+  Ensure the correct ID format when calling service endpoints.
+- Caching (order-service): the order-service uses Spring Cache annotations. The implementation uses two cache names:
+  - `orders` — per-order cache (keyed by ObjectId.toHexString())
+  - `orders_all` — cached list/pages of orders
+  These cache names and eviction/put behavior are defined in the service implementation and covered by unit tests; be aware that updates evict the `orders_all` cache and update the per-order cache.
+
+(See service sources and tests for concrete behaviour and examples.)
+
+---
+
 ## Run Locally
 ```bash
 # Start required containers (see docker/ directory for compose files)
