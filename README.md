@@ -6,10 +6,10 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## Overview
-**SmartOrder** is a distributed order and inventory management platform built with **Spring Boot**, **Kafka**, and **PostgreSQL**.  
+**SmartOrder** is a distributed order and inventory management platform built with **Spring Boot**, **Kafka**, and **MongoDB** (order-service).  
 The goal is to demonstrate enterprise-level architectural design and clean modular development.
 
-**SmartOrder** is a monorepo demo of order and inventory management, showcasing Spring Boot architecture, messaging with Kafka, PostgreSQL database, Redis caching, and modular project design.
+**SmartOrder** is a monorepo demo of order and inventory management, showcasing Spring Boot architecture, messaging with Kafka, modular project design, and a mix of SQL/NoSQL persistence depending on the service.
 
 ---
 
@@ -25,13 +25,15 @@ The goal is to demonstrate enterprise-level architectural design and clean modul
 ┌─────────▼──────────────┐                      ┌──────────▼──────────────┐
 │ order-service          │                      │ inventory-service       │
 │ REST API               │◄───────Kafka────────►│ Kafka consumer          │
-│ Feign to Inventory     │                      │ DB + stock management   │
+│ (uses MongoDB)         │                      │ DB + stock management   │
 └─────────┬──────────────┘                      └──────────┬──────────────┘
           │                                               │
           └──────────────────────────────┬────────────────┘
                                          │
                                   ┌──────▼───────┐
-                                  │ PostgreSQL   │
+                                  │ Databases     │
+                                  │ (MongoDB /    │
+                                  │  PostgreSQL)  │
                                   └──────────────┘
 ```
 
@@ -39,25 +41,29 @@ The goal is to demonstrate enterprise-level architectural design and clean modul
 
 ## Tech Stack
 
-- **Java 21**, Spring Boot 4.0, Spring Cloud 2025.x
-- **RabbitMQ** for messaging
-- **SQL/NoSQL** databases
-- **Spring Boot default** caching
+- **Java 21**, Spring Boot (3.3+ / 4.x compatible)
+- **Kafka** for messaging (event-driven communication between services)
+- **MongoDB** for the order-service (other services may use SQL DBs such as PostgreSQL)
+- **SQL/NoSQL** databases depending on the service
+- **Spring Boot caching** (service-level caches used; implementation configurable)
 - **Docker Compose** for local environment
 
 ---
 
 ## Run Locally
 ```bash
+# Start required containers (see docker/ directory for compose files)
 docker compose up -d
 mvn clean package
 ```
 
-To run a service:
+To run a service locally:
 ```bash
-cd order-service
+cd services/order-service
 mvn spring-boot:run
 ```
+
+Note: the order-service uses MongoDB (embedded or containerized) and relies on Spring Cache annotations for caching. Check docker/ for the docker-compose files that start monitoring and persistence dependencies.
 
 ---
 
