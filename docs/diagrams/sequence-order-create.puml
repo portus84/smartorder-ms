@@ -1,0 +1,18 @@
+@startuml
+title Create Order - sequence
+actor Client
+participant Gateway
+participant OrderService
+participant MongoDB
+participant RabbitMQ
+participant InventoryService
+
+Client -> Gateway: POST /orders
+Gateway -> OrderService: HTTP POST /orders
+OrderService -> MongoDB: insert order document
+OrderService -> RabbitMQ: publish OrderCreated event
+RabbitMQ -> InventoryService: deliver OrderCreated
+InventoryService -> MongoDB: reserve items / update stock
+InventoryService -> RabbitMQ: publish InventoryUpdated (optional)
+Gateway --> Client: 201 Created (order id)
+@enduml

@@ -1,85 +1,186 @@
-# SmartOrder — Distributed Order Management System
+# SmartOrder Microservices Platform
 
-[![Build](https://github.com/portus84/smartorder/actions/workflows/ci.yml/badge.svg)](https://github.com/portus84/smartorder/actions)
-[![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://adoptium.net)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3+-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+SmartOrder is a **microservices-based reference platform** built with **Spring Boot and Spring Cloud**, designed to demonstrate a **production-ready architecture** including service discovery, API Gateway, messaging, observability, monitoring, and local development tooling via Docker Compose.
 
-## Overview
-**SmartOrder** is a distributed order and inventory management platform built with **Spring Boot**, **Kafka**, and **MongoDB** (order-service).  
-The goal is to demonstrate enterprise-level architectural design and clean modular development.
+The project emphasizes **clean architecture**, **event-driven communication**, **cloud-native patterns**, and **developer experience**.
 
-**SmartOrder** is a monorepo demo of order and inventory management, showcasing Spring Boot architecture, messaging with Kafka, modular project design, and a mix of SQL/NoSQL persistence depending on the service.
+---
+## 🎯 Project Goals
+
+- Provide a realistic microservices reference architecture
+- Enable one-command local startup
+- Showcase cloud-native and observability-first design
+- Serve as a learning and experimentation platform
+
+---
+## 🧱 Architecture Overview
+
+The platform is composed of:
+
+- **Spring Cloud Gateway** as the API Gateway
+- **Multiple Spring Boot microservices**
+- **RabbitMQ** for asynchronous messaging
+- **Consul** for service discovery and configuration
+- **MongoDB** as the primary datastore
+- **Docker & Docker Compose** for local orchestration
+- **Full observability stack** (Prometheus, Grafana, InfluxDB, Dozzle, etc.)
+
+The system follows **Domain-Driven Design (DDD)** and **REST + HATEOAS** principles.
 
 ---
 
-## Architecture
+## 📦 Microservices
+
+### Gateway
+- **Spring Cloud Gateway**
+- Dynamic routing via Consul
+- Circuit breaker fallback endpoints
+- CORS configuration
+- Central entry point for all APIs
+
+### Business Services
+Each service is:
+- A standalone **Spring Boot application**
+- Registered to **Consul**
+- Exposing REST APIs with **Spring HATEOAS**
+- Instrumented with **Micrometer**
+
+Services include:
+- Order Service
+- Inventory Service
+- Product Service
+- (others depending on branch evolution)
+
+---
+
+## 🔄 Communication
+
+### Synchronous
+- REST over HTTP
+- Gateway → Services
+- HATEOAS-enabled responses
+
+### Asynchronous
+- **RabbitMQ**
+- Event-based messaging
+- Decoupled service interactions
+- Prepared for CQRS / eventual consistency patterns
+
+> Kafka is intentionally **not used** in this project. RabbitMQ was chosen for simplicity, local development, and classic messaging semantics.
+
+---
+
+## 🧠 Service Discovery & Configuration
+
+### Consul
+- Service registration
+- Health checks
+- Configuration management
+- Centralized discovery for Gateway routing
+
+All services auto-register themselves to Consul at startup.
+
+---
+
+## 🗄️ Data Layer
+
+### MongoDB
+- Used by business services
+- Dockerized
+- Schema-less persistence
+- Indexing configured per service responsibility
+
+---
+
+## 📊 Observability & Monitoring
+
+The project includes a **complete observability stack**, fully dockerized.
+
+### Prometheus
+- Metrics scraping via Micrometer
+- JVM metrics
+- HTTP metrics
+- Custom application metrics
+
+### Grafana
+- Pre-provisioned dashboards:
+    - JVM Micrometer Dashboard
+    - MongoDB Dashboard
+    - JMeter Load Testing Dashboard
+- Auto-loaded dashboards via provisioning
+- Ready-to-use visualization layer
+
+### InfluxDB
+- Time Series Database (TSDB) for storing high-frequency data like metrics, events, and logs.
+- Query languages: InfluxQL (SQL-like) and Flux for advanced analytics.
+- Use cases & advantages: Fast read/write, time-based aggregations, retention policies, integrates easily with Grafana and monitoring tools.
+
+### Dozzle
+- Real-time Docker log viewer
+- Centralized log streaming
+- Useful for local debugging
+
+### Dashy
+- Unified developer dashboard
+- Entry point to all tools (Grafana, Prometheus, Consul, InfluxDB, etc.)
+
+---
+
+## 🐳 Docker & Local Development
+
+The `docker/` directory is **highly structured** and represents a key strength of this repository.
+
+### Dockerized Components
+- Gateway
+- All microservices
+- RabbitMQ
+- MongoDB
+- Consul
+- Prometheus
+- Grafana
+- InfluxDB
+- Dozzle
+- Dashy
+
+### Docker Compose
+- Multi-compose setup
+- Config services separated from business services
+- Reproducible local environment
+- Zero external dependencies required
+
+
+### 🐳 Docker Structure
+
+The Docker setup is a core part of the project, not an afterthought.
 ```
-                        ┌──────────────────────┐
-                        │ API Gateway          │
-                        │ (Spring Cloud GW)    │
-                        └─────────┬────────────┘
-                                  │
-          ┌───────────────────────┼────────────────────────┐
-          │                                                │
-┌─────────▼──────────────┐                      ┌──────────▼──────────────┐
-│ order-service          │                      │ inventory-service       │
-│ REST API               │◄───────Kafka────────►│ Kafka consumer          │
-│ (uses MongoDB)         │                      │ DB + stock management   │
-└─────────┬──────────────┘                      └──────────┬──────────────┘
-          │                                               │
-          └──────────────────────────────┬────────────────┘
-                                         │
-                                  ┌──────▼───────┐
-                                  │ Databases     │
-                                  │ (MongoDB /    │
-                                  │  PostgreSQL)  │
-                                  └──────────────┘
+docker
+├── config-services
+│   ├── dashy
+│   ├── grafana
+│   ├── influxdb
+│   ├── jmeter
+│   ├── prometheus
+├── docker-compose.all.yml
+├── docker-compose.monitoring.yml
+├── docker-compose.persistence.yml
 ```
+docker-compose.all.yml orchestrates **the entire ecosystem.**
 
----
+## 🚀 How to Run the Platform
 
-## Tech Stack
+### Prerequisites
+- Docker
+- Docker Compose (v2)
 
-- **Java 21**, Spring Boot (3.3+ / 4.x compatible)
-- **Kafka** for messaging (event-driven communication between services)
-- **MongoDB** for the order-service (other services may use SQL DBs such as PostgreSQL)
-- **SQL/NoSQL** databases depending on the service
-- **Spring Boot caching** (service-level caches used; implementation configurable)
-- **Docker Compose** for local environment
+### Start the entire platform
 
----
+The **whole SmartOrder platform** (infrastructure + services + observability) can be started using:
 
-## Run Locally
 ```bash
-# Start required containers (see docker/ directory for compose files)
-docker compose up -d
-mvn clean package
+docker-compose -f docker-compose.all.yml up -d
 ```
 
-To run a service locally:
-```bash
-cd services/order-service
-mvn spring-boot:run
-```
+## 👤 Author
 
-Note: the order-service uses MongoDB (embedded or containerized) and relies on Spring Cache annotations for caching. Check docker/ for the docker-compose files that start monitoring and persistence dependencies.
-
----
-
-## Coding Standards
-
-This project follows established coding and commit guidelines to ensure consistency and maintainability.
-
-### Java Code Style
-
-The codebase adheres to the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) to maintain consistent formatting, naming conventions, and best practices across all modules.
-
-### Commit Messages
-
-All Git commits follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) standard, enabling semantic versioning, automated changelogs, and a clean commit history.
-
-## Author
-**Francesco Portus**  
-Software Architect / Senior Java Developer  
-[LinkedIn](https://www.linkedin.com/in/francesco-portus) | [GitHub](https://github.com/portus84)
+Francesco Portus
+Software Architect / Solution Architect

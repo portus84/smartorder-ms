@@ -1,0 +1,22 @@
+@startuml
+!define C4P https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!includeurl C4P/C4_Container.puml
+
+Person(client, "Client")
+
+System_Boundary(smartorder, "smartorder-ms") {
+  Container(gateway_app, "API Gateway", "Spring Boot", "Routes requests, handles cross-cutting concerns")
+  Container(order_api, "Order Service API", "Spring Boot", "REST API, persists to MongoDB, publishes events")
+  Container(inventory_api, "Inventory Service API", "Spring Boot", "REST API, consumes events")
+  ContainerDb(mongo, "MongoDB", "Document DB")
+}
+
+System_Ext(rabbitmq, "RabbitMQ", "Message broker")
+
+Rel(client, gateway_app, "HTTP/REST")
+Rel(gateway_app, order_api, "HTTP/REST")
+Rel(order_api, mongo, "Reads/Writes")
+Rel(order_api, rabbitmq, "Publishes events")
+Rel(inventory_api, rabbitmq, "Consumes events")
+Rel(inventory_api, mongo, "Reads/Writes")
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+!define C4P https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!includeurl C4P/C4_Component.puml
+
+Container(order_api, "Order Service API", "Spring Boot")
+
+Component(controller, "OrderController", "REST controller")
+Component(service, "OrderService", "Business logic: create order, validation, publishing events")
+Component(repo, "OrderRepository", "Mongo repository")
+Component(events, "EventPublisher", "Publishes domain events to RabbitMQ")
+
+Rel(order_api, controller, "handles HTTP")
+Rel(controller, service, "calls")
+Rel(service, repo, "persists order")
+Rel(service, events, "publishes events")
+@enduml
