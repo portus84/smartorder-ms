@@ -3,6 +3,7 @@ package it.portus.ms.commons.handlers;
 import it.portus.ms.commons.dto.ReactiveErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Optional;
+import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -25,7 +26,8 @@ import reactor.core.publisher.Mono;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 public class ReactiveResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-  public static final class HttpHeadersConstants {
+  @UtilityClass
+  private static final class HttpHeadersConstants {
     public static final String X_REQUEST_ID = "X-Request-ID";
   }
 

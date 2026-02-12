@@ -1,7 +1,5 @@
 package it.portus.smartorder.ms.orderservice.api.controller.impl;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 import com.querydsl.core.types.dsl.BooleanExpression;
 import it.portus.ms.commons.mappers.PageToPageMapper;
 import it.portus.ms.commons.utils.PageableUtils;
@@ -19,7 +17,6 @@ import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
 import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -52,12 +49,10 @@ public class OrdersApiDelegateImpl implements OrdersApiDelegate {
                                 .valueOf(s.getValue()))))
             .orElse(basePredicate);
 
-      ResponseEntity<PagedModel<EntityModel<Order>>> ok = ResponseEntity.ok(
-              hateoasHelper.toPagedModel(
-                      pageToPageMapper.toPage(
-                              orderService.findAll(predicate, PageableUtils.of(page, size, sort)), Order.class)));
-
-      return ok;
+    return ResponseEntity.ok(
+        hateoasHelper.toPagedModel(
+            pageToPageMapper.toPage(
+                orderService.findAll(predicate, PageableUtils.of(page, size, sort)), Order.class)));
   }
 
   @Override
@@ -102,7 +97,7 @@ public class OrdersApiDelegateImpl implements OrdersApiDelegate {
         .map(
             existing -> {
               orderService.delete(existing);
-              return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+              return ResponseEntity.noContent().<Void>build();
             })
         .orElseThrow(() -> new OrderNotFoundException(id));
   }

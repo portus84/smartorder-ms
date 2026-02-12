@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public class JacksonAutoConfigurationTest {
+class JacksonAutoConfigurationTest {
 
   private final ApplicationContextRunner contextRunner =
       new ApplicationContextRunner()

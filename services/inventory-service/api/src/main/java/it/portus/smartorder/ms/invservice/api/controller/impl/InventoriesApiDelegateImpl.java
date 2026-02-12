@@ -15,7 +15,6 @@ import lombok.SneakyThrows;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -82,7 +81,7 @@ public class InventoriesApiDelegateImpl implements InventoriesApiDelegate {
         .map(
             existing -> {
               inventoryService.delete(existing);
-              return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+              return ResponseEntity.noContent().<Void>build();
             })
         .orElseThrow(() -> new InventoryNotFoundException(id));
   }

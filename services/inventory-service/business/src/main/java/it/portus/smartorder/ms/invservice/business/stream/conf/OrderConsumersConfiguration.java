@@ -21,23 +21,25 @@ public class OrderConsumersConfiguration {
   @Bean
   public Consumer<OrderCreatedEvent> orderCreatedConsumer() {
     return event -> {
-      log.info("Received order {} in inventory service", event.getOrderId());
+      String orderId = event.getOrderId();
 
-      boolean available = checkInventory(event.getOrderId());
+      log.info("Received order {} in inventory service", orderId);
+
+      boolean available = checkInventory();
 
       if (available) {
-        log.debug("Order {} is available, sending confirmation", event.getOrderId());
-        sendConfirmation(event.getOrderId(), true, null);
+        log.debug("Order {} is available, sending confirmation", orderId);
+        sendConfirmation(orderId, true, null);
       } else {
-        log.warn("Order {} is not available, sending rejection", event.getOrderId());
-        sendConfirmation(event.getOrderId(), false, "Insufficient stock");
+        log.warn("Order {} is not available, sending rejection", orderId);
+        sendConfirmation(orderId, false, "Insufficient stock");
       }
     };
   }
 
-  private boolean checkInventory(String orderId) {
+  private boolean checkInventory() {
     // TODO: implement real inventory check
-    return true;
+    return true; // NOSONAR
   }
 
   private void sendConfirmation(String orderId, boolean confirmed, String reason) {

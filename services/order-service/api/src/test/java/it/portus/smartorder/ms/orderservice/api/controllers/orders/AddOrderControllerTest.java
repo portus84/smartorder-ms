@@ -27,12 +27,11 @@ import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBeans;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
-@MockitoBeans({@MockitoBean(types = {CacheManager.class})})
+@MockitoBean(types = {CacheManager.class})
 class AddOrderControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders";
@@ -147,7 +146,7 @@ class AddOrderControllerTest {
   }
 
   @Test
-  @Disabled
+  @Disabled("Authorization not implemented yet")
   void addOrder_WhenUnauthorized_ReturnsUnauthorized() {
     assertDoesNotThrow(
         () ->

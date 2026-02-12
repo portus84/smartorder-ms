@@ -122,7 +122,9 @@ class LoggingAspectUtilsTest {
     }
 
     @Override
-    public void set$AroundClosure(AroundClosure arc) {}
+    public void set$AroundClosure(AroundClosure arc) {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public Object getThis() {

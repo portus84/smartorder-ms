@@ -5,10 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public abstract class MongoCrudService<T extends Entity<ID>, ID>
-    extends AbstractCrudService<T, ID, MongoRepository<T, ID>> {
+public abstract class MongoCrudService<T extends Entity<I>, I>
+    extends AbstractCrudService<T, I, MongoRepository<T, I>> {
 
-  public MongoCrudService(MongoRepository<T, ID> repository) {
+  protected MongoCrudService(MongoRepository<T, I> repository) {
     super(repository);
   }
 

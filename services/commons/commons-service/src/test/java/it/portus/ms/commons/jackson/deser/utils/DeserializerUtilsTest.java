@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import it.portus.ms.commons.jackson.deser.utils.DeserializerUtils;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.IanaLinkRelations;

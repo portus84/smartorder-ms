@@ -28,12 +28,11 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBeans;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
-@MockitoBeans({@MockitoBean(types = {CacheManager.class})})
+@MockitoBean(types = {CacheManager.class})
 class PatchOrderControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders";

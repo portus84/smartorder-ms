@@ -108,7 +108,7 @@ class GetInventoryByIdControllerTest {
   }
 
   @Test
-  @Disabled
+  @Disabled("Authorization not implemented yet")
   void getInventoryById_WhenUnauthorized_ReturnsUnauthorized() {
     assertDoesNotThrow(
         () -> mockMvc.perform(get(ENDPOINT, "anyId")).andExpect(status().isUnauthorized()));

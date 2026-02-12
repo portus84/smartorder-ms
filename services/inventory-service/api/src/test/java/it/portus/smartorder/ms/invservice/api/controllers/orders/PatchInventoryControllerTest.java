@@ -149,7 +149,6 @@ class PatchInventoryControllerTest {
   void patchInventory_WhenInvalidRequestBody_ReturnsBadRequest() {
     String invalidJson = "{ invalid json }";
     UUID randomId = UUID.randomUUID();
-    ;
 
     assertDoesNotThrow(
         () ->
@@ -215,7 +214,6 @@ class PatchInventoryControllerTest {
   @Test
   void patchInventory_WhenOperationMissing_ReturnsBadRequest() {
     UUID randomId = UUID.randomUUID();
-    ;
 
     String jsonMissingOperation =
         """
@@ -237,7 +235,6 @@ class PatchInventoryControllerTest {
   @Test
   void patchInventory_WhenOperationNotRecognized_ReturnsBadRequest() {
     UUID randomId = UUID.randomUUID();
-    ;
 
     String jsonInvalidOperation =
         """

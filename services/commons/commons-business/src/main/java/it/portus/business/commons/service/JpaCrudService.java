@@ -5,10 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public abstract class JpaCrudService<T extends Entity<ID>, ID>
-    extends AbstractCrudService<T, ID, JpaRepository<T, ID>> {
+public abstract class JpaCrudService<T extends Entity<I>, I>
+    extends AbstractCrudService<T, I, JpaRepository<T, I>> {
 
-  public JpaCrudService(JpaRepository<T, ID> repository) {
+  protected JpaCrudService(JpaRepository<T, I> repository) {
     super(repository);
   }
 

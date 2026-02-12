@@ -26,6 +26,7 @@ public class LoggingAspect {
     this.basePackages = List.copyOf(basePackages);
   }
 
+  @SuppressWarnings("java:S2139") // Logging before rethrow is intentional
   @Around("execution(* it.portus..*(..))" + " && !within(it.portus.ms.commons..*)")
   public Object logMethod(ProceedingJoinPoint joinPoint) throws Throwable {
     Optional<Class<?>> optTargetClass = LoggingAspectUtils.getTargetClass(joinPoint);

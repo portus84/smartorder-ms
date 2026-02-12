@@ -73,17 +73,18 @@ public class DefaultSchemaProcessorImpl implements OpenApiSchemaProcessor {
   }
 
   private Map<String, Schema<?>> reorderSchemas(Map<String, Schema<?>> originalSchemas) {
-    TreeMap<String, Schema<?>> mainSchemas =
+    SortedMap<String, Schema<?>> filteredMainSchemas =
         OpenApiSchemaUtils.filterSchemas(
             originalSchemas, e -> !utilitySchemas.contains(e.getKey()));
 
-    TreeMap<String, Schema<?>> utilitySchemas =
+    SortedMap<String, Schema<?>> filteredUtilitySchemas =
         OpenApiSchemaUtils.filterSchemas(
             originalSchemas, e -> this.utilitySchemas.contains(e.getKey()));
 
     LinkedHashMap<String, Schema<?>> ordered = new LinkedHashMap<>();
-    ordered.putAll(mainSchemas);
-    ordered.putAll(utilitySchemas);
+    ordered.putAll(filteredMainSchemas);
+    ordered.putAll(filteredUtilitySchemas);
+
     return ordered;
   }
 

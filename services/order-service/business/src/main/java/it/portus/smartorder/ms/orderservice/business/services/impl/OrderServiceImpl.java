@@ -30,12 +30,9 @@ public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implemen
 
   @Nullable private final OrderRuleEngine rulesService;
 
-  private final OrderRepository repository;
-
   public OrderServiceImpl(
       OrderRepository repository, @Autowired(required = false) OrderRuleEngine rulesService) {
     super(repository);
-    this.repository = repository;
     this.rulesService = rulesService;
   }
 
@@ -87,17 +84,12 @@ public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implemen
   }
 
   @Override
-  public Iterable<Order> findAll(Predicate predicate) {
-    return this.findAll(predicate, Pageable.unpaged());
-  }
-
-  @Override
   @Cacheable(
       value = CacheNames.ORDERS_ALL,
       key =
           "#p1 != null ? #p1.pageNumber + '-' + #p1.pageSize + '-' + (#p0.toString().hashCode() + '-' + #p0.toString()) : 'unpaged-' + (#p0.toString().hashCode() + '-' + #p0.toString())")
   public Page<Order> findAll(Predicate predicate, Pageable pageable) {
-    return repository.findAll(predicate, pageable);
+    return ((OrderRepository) repository).findAll(predicate, pageable);
   }
 
   @Override

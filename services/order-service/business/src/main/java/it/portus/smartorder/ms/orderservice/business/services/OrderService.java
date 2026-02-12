@@ -11,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrderService extends CrudService<Order, ObjectId> {
 
-  Iterable<Order> findAll(Predicate predicate);
-
   Page<Order> findAll(Predicate predicate, Pageable pageable);
 
   List<OrderStatus> getTransitionStatuses(Order order);

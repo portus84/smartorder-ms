@@ -21,7 +21,7 @@ class OpenApiSchemaUtilsTest {
     input.put("a", new Schema<String>().type("string"));
     input.put("b", new Schema<String>().type("integer"));
 
-    TreeMap<String, Schema<?>> result =
+    SortedMap<String, Schema<?>> result =
         OpenApiSchemaUtils.filterSchemas(input, entry -> "a".equals(entry.getKey()));
 
     assertEquals(1, result.size());

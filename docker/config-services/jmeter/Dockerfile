@@ -3,18 +3,17 @@ FROM eclipse-temurin:11-jre
 
 ARG JMETER_VERSION=5.6.3
 
-# Install essentials
-RUN apt-get update && apt-get install -y wget unzip \
+# Create non-root user, install essentials, JMeter, plugin in a single RUN to reduce layers
+RUN addgroup -S jmetergroup && adduser -S jmeteruser -G jmetergroup \
+    && apt-get update && apt-get install -y --no-install-recommends wget unzip \
+    && wget --max-redirect=0 https://downloads.apache.org/jmeter/binaries/apache-jmeter-"${JMETER_VERSION}".tgz \
+    && wget --max-redirect=0 https://downloads.apache.org/jmeter/binaries/apache-jmeter-"${JMETER_VERSION}".tgz.sha512 \
+    && sha512sum -c apache-jmeter-"${JMETER_VERSION}".tgz.sha512 \
+    && tar -xzf apache-jmeter-"${JMETER_VERSION}".tgz -C /opt \
+    && rm apache-jmeter-"${JMETER_VERSION}".tgz* \
+    && wget --max-redirect=0 https://repo1.maven.org/maven2/io/github/mderevyankoaqa/jmeter-plugins-influxdb2-listener/2.8/jmeter-plugins-influxdb2-listener-2.8.jar \
+       -O /opt/apache-jmeter-"${JMETER_VERSION}"/lib/ext/jmeter-plugins-influxdb2-listener-2.8.jar \
     && rm -rf /var/lib/apt/lists/*
-
-# Install JMeter
-RUN wget https://downloads.apache.org/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz \
-    && tar -xzf apache-jmeter-${JMETER_VERSION}.tgz -C /opt \
-    && rm apache-jmeter-${JMETER_VERSION}.tgz
-
-# Download InfluxDB 2.x Backend Listener plugin
-RUN wget https://repo1.maven.org/maven2/io/github/mderevyankoaqa/jmeter-plugins-influxdb2-listener/2.8/jmeter-plugins-influxdb2-listener-2.8.jar \
-    -O /opt/apache-jmeter-${JMETER_VERSION}/lib/ext/jmeter-plugins-influxdb2-listener-2.8.jar
 
 # Set PATH
 ENV PATH="/opt/apache-jmeter-${JMETER_VERSION}/bin:$PATH"
@@ -27,5 +26,8 @@ COPY run-tests.sh /run-tests.sh
 
 # Make the script executable (essential!)
 RUN chmod +x /run-tests.sh
+
+# Switch to non-root user
+USER jmeteruser
 
 ENTRYPOINT ["/bin/sh", "/run-tests.sh"]

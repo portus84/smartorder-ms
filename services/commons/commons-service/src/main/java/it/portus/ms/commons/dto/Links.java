@@ -25,5 +25,7 @@ import lombok.Data;
                 """)
 public class Links {
 
+  // Intentional name clash with Spring HATEOAS Links for DTO purposes
+  @SuppressWarnings("java:S1700")
   private Map<String, Link> links;
 }

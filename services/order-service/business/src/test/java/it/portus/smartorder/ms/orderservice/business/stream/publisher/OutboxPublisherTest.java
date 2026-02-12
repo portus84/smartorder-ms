@@ -1,100 +1,79 @@
 package it.portus.smartorder.ms.orderservice.business.stream.publisher;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.portus.smartorder.ms.orderservice.business.domain.events.EventStatus;
-import it.portus.smartorder.ms.orderservice.business.domain.events.OrderOutboxEvent;
-import it.portus.smartorder.ms.orderservice.business.domain.repositories.OrderOutboxRepository;
-import it.portus.smartorder.ms.orderservice.business.stream.BindingNames;
-import java.util.List;
-import org.instancio.Instancio;
-import org.instancio.Select;
-import org.junit.jupiter.api.BeforeEach;
+import com.mongodb.client.MongoDatabase;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class OutboxPublisherTest {
 
-  @Mock private OrderOutboxRepository outboxRepository;
+  @Mock private MongoTemplate mongoTemplate;
 
-  @Mock private StreamBridge streamBridge;
+  @Mock private OutboxPollingPublisher pollingPublisher;
 
-  @Mock private ObjectMapper objectMapper;
+  @Mock private ExecutorService executorService;
+
+  @Mock private MongoDatabase mongoDatabase;
+
+  @Mock private Future<?> future;
 
   @InjectMocks private OutboxPublisher outboxPublisher;
 
-  @BeforeEach
-  void setUp() {
-    ReflectionTestUtils.setField(outboxPublisher, "mongoTemplate", mock(MongoTemplate.class));
-  }
-
   @Test
-  void processPendingEvents_PendingEventsExist_ShouldSubmitTasks() {
-    List<OrderOutboxEvent> events =
-        Instancio.ofList(OrderOutboxEvent.class)
-            .size(3)
-            .set(Select.field(OrderOutboxEvent::getEventType), String.class.getName())
-            .set(Select.field(OrderOutboxEvent::getStatus), EventStatus.PENDING)
-            .create();
+  void start_ChangeStreamSupported_SubmitsChangeStreamTask() {
+    when(mongoTemplate.getDb()).thenReturn(mongoDatabase);
+    when(mongoDatabase.runCommand(any(Document.class))).thenReturn(new Document("setName", "rs0"));
 
-    when(outboxRepository.findByStatus(EventStatus.PENDING)).thenReturn(events);
+    doReturn(future).when(executorService).submit(any(Runnable.class));
 
     outboxPublisher.start();
 
-    verify(outboxRepository, times(1)).findByStatus(EventStatus.PENDING);
+    verify(pollingPublisher).pollAndSend();
+    verify(executorService).submit(any(Runnable.class));
+    verify(pollingPublisher, never()).start();
   }
 
   @Test
-  void sendEvent_EventSentSuccessfully_ShouldSetStatusSent() throws Exception {
-    OrderOutboxEvent event = Instancio.create(OrderOutboxEvent.class);
-    event.setStatus(EventStatus.PENDING);
-    event.setEventType(String.class.getName());
+  void start_ChangeStreamNotSupported_StartsPollingFallback() {
+    when(mongoTemplate.getDb()).thenReturn(mongoDatabase);
+    when(mongoDatabase.runCommand(any(Document.class)))
+        .thenThrow(new RuntimeException("Not a replica set"));
 
-    when(objectMapper.readValue(event.getPayload(), String.class)).thenReturn(event.getPayload());
-    when(streamBridge.send(BindingNames.PUBLISH_ORDER_CREATED, event.getPayload()))
-        .thenReturn(true);
+    outboxPublisher.start();
 
-    ReflectionTestUtils.invokeMethod(outboxPublisher, "sendEvent", event);
-
-    assertEquals(EventStatus.SENT, event.getStatus());
-    verify(outboxRepository).save(event);
+    verify(pollingPublisher).pollAndSend();
+    verify(pollingPublisher).start();
+    verify(executorService, never()).submit(any(Runnable.class));
   }
 
   @Test
-  void sendEvent_SendFails_ShouldSetStatusFailed() throws Exception {
-    OrderOutboxEvent event = Instancio.create(OrderOutboxEvent.class);
-    event.setStatus(EventStatus.PENDING);
-    event.setEventType(String.class.getName());
+  void shutdown_ChangeStreamTaskRunning_CancelsFuture() {
+    when(mongoTemplate.getDb()).thenReturn(mongoDatabase);
+    when(mongoDatabase.runCommand(any(Document.class))).thenReturn(new Document("setName", "rs0"));
 
-    when(objectMapper.readValue(event.getPayload(), String.class)).thenReturn(event.getPayload());
-    when(streamBridge.send(any(), any())).thenReturn(false);
+    doReturn(future).when(executorService).submit(any(Runnable.class));
 
-    ReflectionTestUtils.invokeMethod(outboxPublisher, "sendEvent", event);
+    outboxPublisher.start();
 
-    assertEquals(EventStatus.FAILED, event.getStatus());
-    verify(outboxRepository).save(event);
+    outboxPublisher.shutdown();
+
+    verify(future).cancel(true);
   }
 
   @Test
-  void sendEvent_ExceptionThrown_ShouldSetStatusFailed() throws Exception {
-    OrderOutboxEvent event = Instancio.create(OrderOutboxEvent.class);
-    event.setStatus(EventStatus.PENDING);
-    event.setEventType(String.class.getName());
-
-    when(objectMapper.readValue(event.getPayload(), String.class))
-        .thenThrow(new RuntimeException("boom"));
-
-    ReflectionTestUtils.invokeMethod(outboxPublisher, "sendEvent", event);
-
-    assertEquals(EventStatus.FAILED, event.getStatus());
-    verify(outboxRepository).save(event);
+  void shutdown_NoChangeStreamTask_DoesNothing() {
+    assertDoesNotThrow(() -> outboxPublisher.shutdown());
+    verifyNoInteractions(executorService);
   }
 }

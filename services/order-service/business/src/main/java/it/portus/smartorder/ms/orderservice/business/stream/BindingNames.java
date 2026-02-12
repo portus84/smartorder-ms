@@ -5,5 +5,5 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class BindingNames {
 
-  public static String PUBLISH_ORDER_CREATED = "publishOrderCreated";
+  public static final String PUBLISH_ORDER_CREATED = "publishOrderCreated";
 }

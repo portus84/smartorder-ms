@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class FallbackController {
 
-  @RequestMapping("/fallback")
+  @GetMapping("/fallback")
   public ResponseEntity<String> fallback() {
     throw new ResponseStatusException(
         HttpStatus.SERVICE_UNAVAILABLE, "Service temporarily unavailable. Please try again later.");

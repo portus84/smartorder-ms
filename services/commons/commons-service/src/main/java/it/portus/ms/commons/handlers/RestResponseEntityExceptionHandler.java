@@ -4,7 +4,6 @@ import it.portus.ms.commons.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Optional;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,6 +57,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         ex, null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
   }
 
+  /*
+   * Spring override; return value may be null (@Nullable). Sonar S2638 is a false positive due to
+   * package-level nullability mismatch.
+   */
+  @SuppressWarnings("java:S2638")
   @Override
   @Nullable
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -67,6 +72,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return handleValidationException(ex, headers, status, request, ex.getBody().getDetail());
   }
 
+  /*
+   * Spring override; return value may be null (@Nullable). Sonar S2638 is a false positive due to
+   * package-level nullability mismatch.
+   */
+  @SuppressWarnings("java:S2638")
   @Override
   @Nullable
   protected ResponseEntity<Object> handleHttpMessageNotReadable(
@@ -77,6 +87,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return handleValidationException(ex, headers, status, request, "Invalid request content.");
   }
 
+  /*
+   * Spring override; return value may be null (@Nullable). Sonar S2638 is a false positive due to
+   * package-level nullability mismatch.
+   */
+  @SuppressWarnings("java:S2638")
   @Override
   @Nullable
   protected ResponseEntity<Object> handleExceptionInternal(

@@ -8,6 +8,8 @@ import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.FullDocument;
 import jakarta.annotation.PreDestroy;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -25,7 +27,9 @@ public class OutboxPublisher {
   private final OutboxPollingPublisher pollingPublisher;
   private final OutboxSender outboxSender;
 
-  private Thread changeStreamThread;
+  private final ExecutorService executorService;
+
+  private Future<?> changeStreamTask;
 
   @EventListener(ApplicationReadyEvent.class)
   public void start() {
@@ -35,7 +39,7 @@ public class OutboxPublisher {
 
     if (isChangeStreamSupported()) {
       log.debug("Mongo Change Stream supported → starting listener");
-      startChangeStreamListener();
+      changeStreamTask = executorService.submit(this::startChangeStreamListener);
     } else {
       log.warn("Mongo Change Stream NOT supported → falling back to polling");
       pollingPublisher.start();
@@ -44,16 +48,19 @@ public class OutboxPublisher {
 
   @PreDestroy
   public void shutdown() {
-    if (changeStreamThread != null) {
-      changeStreamThread.interrupt();
+    if (changeStreamTask != null) {
+      changeStreamTask.cancel(true);
     }
   }
 
   private void startChangeStreamListener() {
-    changeStreamThread = new Thread(this::listenToChangeStream, "OutboxChangeStreamThread");
-
-    changeStreamThread.setDaemon(true);
-    changeStreamThread.start();
+    try {
+      listenToChangeStream();
+    } catch (Exception e) {
+      if (!Thread.currentThread().isInterrupted()) {
+        log.error("Change Stream listener failed", e);
+      }
+    }
   }
 
   private void listenToChangeStream() {
@@ -68,8 +75,14 @@ public class OutboxPublisher {
             .watch(List.of(Aggregates.match(Filters.eq("operationType", "insert"))))
             .fullDocument(FullDocument.DEFAULT)
             .iterator()) {
+
       cursor.forEachRemaining(
           change -> {
+            if (Thread.currentThread().isInterrupted()) {
+              log.error("Change Stream listener is interrupted");
+              return;
+            }
+
             Document fullDoc = change.getFullDocument();
             if (fullDoc == null) {
               return;

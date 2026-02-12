@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.repository.CrudRepository;
 
-public abstract class AbstractCrudService<T extends Entity<ID>, ID, R extends CrudRepository<T, ID>>
-    implements CrudService<T, ID> {
+public abstract class AbstractCrudService<T extends Entity<I>, I, R extends CrudRepository<T, I>>
+    implements CrudService<T, I> {
 
   protected final R repository;
 
@@ -22,7 +22,7 @@ public abstract class AbstractCrudService<T extends Entity<ID>, ID, R extends Cr
 
   @Override
   @SuppressWarnings("unchecked")
-  public <S extends T> Optional<S> update(ID id, S entity) {
+  public <S extends T> Optional<S> update(I id, S entity) {
     return findById(id)
         .map(
             existing -> {
@@ -37,12 +37,12 @@ public abstract class AbstractCrudService<T extends Entity<ID>, ID, R extends Cr
   }
 
   @Override
-  public Optional<T> findById(ID id) {
+  public Optional<T> findById(I id) {
     return repository.findById(id);
   }
 
   @Override
-  public void deleteById(ID id) {
+  public void deleteById(I id) {
     repository.deleteById(id);
   }
 

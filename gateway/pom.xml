@@ -73,16 +73,10 @@
             <version>${springdoc-webmvc.version}</version>
         </dependency>
 
-        <!--
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webflux-scalar</artifactId>
-            <version>${springdoc-webmvc.version}</version>
-        </dependency>-->
         <dependency>
             <groupId>com.scalar.maven</groupId>
             <artifactId>scalar-webflux</artifactId>
-            <version>0.5.8</version> <!-- Ultima versione stabile Dicembre 2025 -->
+            <version>${scalar-webflux.version}</version>
         </dependency>
 
         <!-- Unit tests -->

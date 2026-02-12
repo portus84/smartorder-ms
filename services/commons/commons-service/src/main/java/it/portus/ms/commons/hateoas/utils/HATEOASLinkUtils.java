@@ -28,6 +28,7 @@ public class HATEOASLinkUtils {
     return applyPlaceholder(controllerClazz, env, rawLink);
   }
 
+  @SuppressWarnings("java:S3011") // Required due to missing public API in Spring HATEOAS
   @SneakyThrows
   public Affordance buildAffordance(
       Class<?> controllerClazz, Environment env, Affordance affordance) {
@@ -106,14 +107,15 @@ public class HATEOASLinkUtils {
         .withAffordances(link.getAffordances());
   }
 
+  @SuppressWarnings({
+    "unchecked",
+    "java:S3011" // Required due to missing public API in Spring HATEOAS
+  })
   @SneakyThrows
   private static Map<MediaType, AffordanceModel> getAffordanceModels(Affordance aff) {
     Field modelsField = Affordance.class.getDeclaredField("models");
     modelsField.setAccessible(true);
-
-    @SuppressWarnings("unchecked")
-    Map<MediaType, AffordanceModel> out = (Map<MediaType, AffordanceModel>) modelsField.get(aff);
-    return out;
+    return (Map<MediaType, AffordanceModel>) modelsField.get(aff);
   }
 
   private record Placeholder(String key, String defaultValue) {}

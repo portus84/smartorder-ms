@@ -5,6 +5,6 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class BindingNames {
 
-  public static String PUBLISH_ORDER_CONFIRMED = "publishOrderConfirmed";
-  public static String PUBLISH_ORDER_OUT_OF_STOCK = "publishOrderOutOfStock";
+  public static final String PUBLISH_ORDER_CONFIRMED = "publishOrderConfirmed";
+  public static final String PUBLISH_ORDER_OUT_OF_STOCK = "publishOrderOutOfStock";
 }

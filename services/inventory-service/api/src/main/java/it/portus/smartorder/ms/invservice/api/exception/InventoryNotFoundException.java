@@ -6,9 +6,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class InventoryNotFoundException extends ResponseStatusException {
 
-  private static final String _NOT_FOUND_MESSAGE = "Inventory with ID '%s' not found";
+  private static final String NOT_FOUND_MESSAGE = "Inventory with ID '%s' not found";
 
   public InventoryNotFoundException(UUID id) {
-    super(HttpStatus.NOT_FOUND, String.format(_NOT_FOUND_MESSAGE, id));
+    super(HttpStatus.NOT_FOUND, String.format(NOT_FOUND_MESSAGE, id));
   }
 }

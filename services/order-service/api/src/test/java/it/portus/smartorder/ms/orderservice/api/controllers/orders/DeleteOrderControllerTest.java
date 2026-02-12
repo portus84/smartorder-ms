@@ -21,12 +21,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBeans;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
-@MockitoBeans({@MockitoBean(types = {CacheManager.class})})
+@MockitoBean(types = {CacheManager.class})
 class DeleteOrderControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders/{id}";

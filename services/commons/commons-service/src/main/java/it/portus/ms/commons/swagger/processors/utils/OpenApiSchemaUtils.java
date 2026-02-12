@@ -17,7 +17,8 @@ import org.jspecify.annotations.Nullable;
 @UtilityClass
 public class OpenApiSchemaUtils {
 
-  public static TreeMap<String, Schema<?>> filterSchemas(
+  @SuppressWarnings("java:S1452") // Wildcard used intentionally due to heterogeneous schema types
+  public static SortedMap<String, Schema<?>> filterSchemas(
       Map<String, Schema<?>> schemas, Predicate<Map.Entry<String, Schema<?>>> filter) {
     return schemas.entrySet().stream()
         .filter(filter)

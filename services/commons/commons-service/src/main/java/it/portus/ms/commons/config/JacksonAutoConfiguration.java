@@ -1,6 +1,5 @@
 package it.portus.ms.commons.config;
 
-import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.portus.ms.commons.jackson.module.EntityModelModule;

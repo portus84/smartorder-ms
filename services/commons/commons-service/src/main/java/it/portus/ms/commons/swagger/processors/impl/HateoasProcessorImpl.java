@@ -35,6 +35,7 @@ public class HateoasProcessorImpl extends DefaultSchemaProcessorImpl {
             Link.class.getSimpleName()));
   }
 
+  @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   protected <T> Optional<Schema<T>> resolveSchemaFromClass(Class<?> clazz) {
     ResolvedSchema resolved =

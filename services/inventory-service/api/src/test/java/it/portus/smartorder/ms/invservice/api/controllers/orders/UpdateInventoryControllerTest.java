@@ -100,7 +100,6 @@ class UpdateInventoryControllerTest {
   void updateInventory_WhenInvalidRequestBody_ReturnsBadRequest() {
     String invalidRequestJson = "{ invalid json }";
     UUID randomId = UUID.randomUUID();
-    ;
 
     assertDoesNotThrow(
         () ->
@@ -115,7 +114,6 @@ class UpdateInventoryControllerTest {
   @Test
   void updateInventory_WhenValidationFails_ReturnsUnprocessableEntity() throws Exception {
     UUID randomId = UUID.randomUUID();
-    ;
 
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenThrow(new IllegalArgumentException("Invalid data"));
@@ -137,7 +135,6 @@ class UpdateInventoryControllerTest {
   @Test
   void updateInventory_WhenDatabaseUnavailable_ReturnsInternalServerError() throws Exception {
     UUID randomId = UUID.randomUUID();
-    ;
 
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenThrow(new RuntimeException("DB unavailable"));

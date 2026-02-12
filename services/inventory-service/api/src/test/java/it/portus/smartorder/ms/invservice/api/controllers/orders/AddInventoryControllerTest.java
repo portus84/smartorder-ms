@@ -143,7 +143,7 @@ class AddInventoryControllerTest {
   }
 
   @Test
-  @Disabled
+  @Disabled("Authorization not implemented yet")
   void addInventory_WhenUnauthorized_ReturnsUnauthorized() {
     assertDoesNotThrow(
         () ->

@@ -41,13 +41,19 @@ class WithTestDataListenerTest {
   @WithTestData(value = TestDataLoader.class)
   static class DummyTestClass {
     @WithTestData(value = TestDataLoader.class)
-    void transactionalMethod() {}
+    void transactionalMethod() {
+      // intentionally empty for test annotation processing
+    }
 
     @WithTestData(value = TestDataLoader.class, transactional = false)
-    void rollbackMethod() {}
+    void rollbackMethod() {
+      // intentionally empty for test annotation processing
+    }
 
     @WithTestData(value = TestDataLoader.class, transactional = false, rollback = false)
-    void commitMethod() {}
+    void commitMethod() {
+      // intentionally empty for test annotation processing
+    }
   }
 
   @Test

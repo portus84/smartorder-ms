@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 @Data
 @Schema(name = "PageMetadata")
-public class PageMetadata<T> {
+public class PageMetadata {
 
   @Schema(
       name = "size",

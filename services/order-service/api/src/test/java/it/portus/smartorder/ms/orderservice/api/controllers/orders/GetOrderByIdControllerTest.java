@@ -26,12 +26,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBeans;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
-@MockitoBeans({@MockitoBean(types = {CacheManager.class})})
+@MockitoBean(types = {CacheManager.class})
 class GetOrderByIdControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders/{id}";
@@ -112,7 +111,7 @@ class GetOrderByIdControllerTest {
   }
 
   @Test
-  @Disabled
+  @Disabled("Authorization not implemented yet")
   void getOrderById_WhenUnauthorized_ReturnsUnauthorized() {
     assertDoesNotThrow(
         () -> mockMvc.perform(get(ENDPOINT, "anyId")).andExpect(status().isUnauthorized()));

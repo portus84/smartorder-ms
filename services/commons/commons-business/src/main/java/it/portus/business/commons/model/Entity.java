@@ -1,7 +1,7 @@
 package it.portus.business.commons.model;
 
-public interface Entity<ID> {
-  ID getId();
+public interface Entity<I> {
+  I getId();
 
-  void setId(ID id);
+  void setId(I id);
 }
