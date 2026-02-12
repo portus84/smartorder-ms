@@ -1,3 +1,5 @@
+[![Java CI with Maven](https://github.com/portus84/smartorder-ms/actions/workflows/maven.yml/badge.svg?branch=develop)](https://github.com/portus84/smartorder-ms/actions/workflows/maven.yml)
+
 # SmartOrder Microservices Platform
 
 SmartOrder is a **microservices-based reference platform** built with **Spring Boot and Spring Cloud**, designed to demonstrate a **production-ready architecture** including service discovery, API Gateway, messaging, observability, monitoring, and local development tooling via Docker Compose.
