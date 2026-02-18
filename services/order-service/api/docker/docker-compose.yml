@@ -34,7 +34,6 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-      cache_from: [ ]
     container_name: order-service-api
     labels:
       dozzle: true

@@ -25,7 +25,6 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-      cache_from: [ ]
     container_name: inventory-service-api
     labels:
       dozzle: true
