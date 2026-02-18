@@ -15,6 +15,9 @@ on:
           - debug
           - warning
 
+permissions:
+  contents: write
+
 jobs:
   build-and-refresh:
     runs-on: ubuntu-latest
@@ -23,14 +26,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn -B clean verify -DskipTests --file pom.xml
+
       - name: Run Docker Compose with Refresh
         run: |
           cd docker
           # --build: Rebuild images if Dockerfile changed
           # --pull: Always attempt to pull a newer version of the images
           # --force-recreate: Recreate containers even if their configuration and image haven't changed
+          docker compose -f docker-compose.all.yml pull
           docker compose -f docker-compose.all.yml up -d --build --force-recreate
 
       - name: Check Container Status
-        run: |
-          docker ps -a
+        run: docker ps -a
+
+      - name: Update dependency graph
+        uses: advanced-security/maven-dependency-submission-action@v4
