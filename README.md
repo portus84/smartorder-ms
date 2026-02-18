@@ -1,4 +1,5 @@
 [![Java CI with Maven](https://github.com/portus84/smartorder-ms/actions/workflows/maven.yml/badge.svg?branch=develop)](https://github.com/portus84/smartorder-ms/actions/workflows/maven.yml)
+[![Docker Compose Auto Refresh](https://github.com/portus84/smartorder-ms/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/portus84/smartorder-ms/actions/workflows/ci-docker.yml)
 [![SonarCloud analysis](https://github.com/portus84/smartorder-ms/actions/workflows/sonarcloud.yml/badge.svg?branch=develop)](https://github.com/portus84/smartorder-ms/actions/workflows/sonarcloud.yml)
 
 # SmartOrder Microservices Platform
