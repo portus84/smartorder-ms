@@ -1,0 +1,36 @@
+name: Docker Compose Auto Refresh
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  workflow_dispatch:
+    inputs:
+      log_level:
+        description: 'Log level'
+        required: false
+        default: 'info'
+        type: choice
+        options:
+          - info
+          - debug
+          - warning
+
+jobs:
+  build-and-refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Docker Compose with Refresh
+        run: |
+          cd docker
+          # --build: Rebuild images if Dockerfile changed
+          # --pull: Always attempt to pull a newer version of the images
+          # --force-recreate: Recreate containers even if their configuration and image haven't changed
+          docker compose -f docker-compose.all.yml up -d --build --pull --force-recreate
+
+      - name: Check Container Status
+        run: |
+          docker ps -a
