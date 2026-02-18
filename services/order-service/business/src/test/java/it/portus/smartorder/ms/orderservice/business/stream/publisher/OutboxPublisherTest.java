@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.mongodb.client.MongoDatabase;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
@@ -14,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @ExtendWith(MockitoExtension.class)
 class OutboxPublisherTest {
@@ -22,7 +22,7 @@ class OutboxPublisherTest {
 
   @Mock private OutboxPollingPublisher pollingPublisher;
 
-  @Mock private ExecutorService executorService;
+  @Mock private ThreadPoolTaskExecutor outboxTaskExecutor;
 
   @Mock private MongoDatabase mongoDatabase;
 
@@ -35,12 +35,12 @@ class OutboxPublisherTest {
     when(mongoTemplate.getDb()).thenReturn(mongoDatabase);
     when(mongoDatabase.runCommand(any(Document.class))).thenReturn(new Document("setName", "rs0"));
 
-    doReturn(future).when(executorService).submit(any(Runnable.class));
+    doReturn(future).when(outboxTaskExecutor).submit(any(Runnable.class));
 
     outboxPublisher.start();
 
     verify(pollingPublisher).pollAndSend();
-    verify(executorService).submit(any(Runnable.class));
+    verify(outboxTaskExecutor).submit(any(Runnable.class));
     verify(pollingPublisher, never()).start();
   }
 
@@ -54,7 +54,7 @@ class OutboxPublisherTest {
 
     verify(pollingPublisher).pollAndSend();
     verify(pollingPublisher).start();
-    verify(executorService, never()).submit(any(Runnable.class));
+    verify(outboxTaskExecutor, never()).submit(any(Runnable.class));
   }
 
   @Test
@@ -62,7 +62,7 @@ class OutboxPublisherTest {
     when(mongoTemplate.getDb()).thenReturn(mongoDatabase);
     when(mongoDatabase.runCommand(any(Document.class))).thenReturn(new Document("setName", "rs0"));
 
-    doReturn(future).when(executorService).submit(any(Runnable.class));
+    doReturn(future).when(outboxTaskExecutor).submit(any(Runnable.class));
 
     outboxPublisher.start();
 
@@ -74,6 +74,6 @@ class OutboxPublisherTest {
   @Test
   void shutdown_NoChangeStreamTask_DoesNothing() {
     assertDoesNotThrow(() -> outboxPublisher.shutdown());
-    verifyNoInteractions(executorService);
+    verifyNoInteractions(outboxTaskExecutor);
   }
 }

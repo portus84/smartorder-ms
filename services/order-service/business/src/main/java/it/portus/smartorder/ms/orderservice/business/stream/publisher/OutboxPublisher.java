@@ -8,7 +8,6 @@ import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.FullDocument;
 import jakarta.annotation.PreDestroy;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,7 @@ import org.bson.Document;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -27,7 +27,7 @@ public class OutboxPublisher {
   private final OutboxPollingPublisher pollingPublisher;
   private final OutboxSender outboxSender;
 
-  private final ExecutorService executorService;
+  private final ThreadPoolTaskExecutor outboxTaskExecutor;
 
   private Future<?> changeStreamTask;
 
@@ -39,7 +39,7 @@ public class OutboxPublisher {
 
     if (isChangeStreamSupported()) {
       log.debug("Mongo Change Stream supported → starting listener");
-      changeStreamTask = executorService.submit(this::startChangeStreamListener);
+      changeStreamTask = outboxTaskExecutor.submit(this::startChangeStreamListener);
     } else {
       log.warn("Mongo Change Stream NOT supported → falling back to polling");
       pollingPublisher.start();
