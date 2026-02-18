@@ -54,6 +54,11 @@ Services include:
 - Product Service
 - (others depending on branch evolution)
 
+The **Gateway** service uses [Scalar](https://scalar.com/) for its API documentation UI, as shown below:
+
+![Gateway UI](docs/screenshots/gateway-ui-screenshot.png)
+
+
 ---
 
 ## 🔄 Communication
@@ -82,6 +87,10 @@ Services include:
 - Centralized discovery for Gateway routing
 
 All services auto-register themselves to Consul at startup.
+
+**Consul** home page:
+
+![Consul UI](docs/screenshots/consul-ui-screenshot.png)
 
 ---
 
@@ -113,6 +122,10 @@ The project includes a **complete observability stack**, fully dockerized.
 - Auto-loaded dashboards via provisioning
 - Ready-to-use visualization layer
 
+**Grafana** home page:
+
+![Grafana UI](docs/screenshots/grafana-ui-screenshot.png)
+
 ### InfluxDB
 - Time Series Database (TSDB) for storing high-frequency data like metrics, events, and logs.
 - Query languages: InfluxQL (SQL-like) and Flux for advanced analytics.
@@ -123,9 +136,17 @@ The project includes a **complete observability stack**, fully dockerized.
 - Centralized log streaming
 - Useful for local debugging
 
+**Dozzle** home page:
+
+![Dozzle UI](docs/screenshots/dozzle-ui-screenshot.png)
+
 ### Dashy
 - Unified developer dashboard
 - Entry point to all tools (Grafana, Prometheus, Consul, InfluxDB, etc.)
+
+**Dashy** home page:
+
+![Dashy UI](docs/screenshots/dashy-ui-screenshot.png)
 
 ---
 
@@ -167,7 +188,7 @@ docker
 ├── docker-compose.monitoring.yml
 ├── docker-compose.persistence.yml
 ```
-docker-compose.all.yml orchestrates **the entire ecosystem.**
+The `docker-compose.all.yml` file orchestrates **the entire ecosystem.**
 
 ## 🚀 How to Run the Platform
 
@@ -180,7 +201,7 @@ docker-compose.all.yml orchestrates **the entire ecosystem.**
 The **whole SmartOrder platform** (infrastructure + services + observability) can be started using:
 
 ```bash
-docker-compose -f docker-compose.all.yml up -d
+docker compose -f docker-compose.all.yml up -d --build --force-recreate
 ```
 
 ## 👤 Author
