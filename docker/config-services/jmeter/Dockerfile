@@ -4,7 +4,7 @@ FROM eclipse-temurin:11-jre
 ARG JMETER_VERSION=5.6.3
 
 # Create non-root user, install essentials, JMeter, plugin in a single RUN to reduce layers
-RUN addgroup -S jmetergroup && adduser -S jmeteruser -G jmetergroup \
+RUN groupadd -r jmetergroup && useradd -r -g jmetergroup jmeteruser \
     && apt-get update && apt-get install -y --no-install-recommends wget unzip \
     && wget --max-redirect=0 https://downloads.apache.org/jmeter/binaries/apache-jmeter-"${JMETER_VERSION}".tgz \
     && wget --max-redirect=0 https://downloads.apache.org/jmeter/binaries/apache-jmeter-"${JMETER_VERSION}".tgz.sha512 \
