@@ -29,7 +29,7 @@ jobs:
           # --build: Rebuild images if Dockerfile changed
           # --pull: Always attempt to pull a newer version of the images
           # --force-recreate: Recreate containers even if their configuration and image haven't changed
-          docker compose -f docker-compose.all.yml up -d --build --pull --force-recreate
+          docker compose -f docker-compose.all.yml up -d --build --force-recreate
 
       - name: Check Container Status
         run: |
