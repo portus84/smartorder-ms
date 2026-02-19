@@ -25,7 +25,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring.cloud.version>2025.0.0</spring.cloud.version>
+        <spring.cloud.version>2025.0.1</spring.cloud.version>
         <io.cloudevents.version>4.0.1</io.cloudevents.version>
         <openapi.generator.version>7.17.0</openapi.generator.version>
         <zenwave.version>2.2.0</zenwave.version>
@@ -43,6 +43,7 @@
         <httpclient.version>4.5.14</httpclient.version>
         <drools.version>10.1.0</drools.version>
 
+        <assertj.version>3.27.7</assertj.version>
         <instancio.version>5.5.1</instancio.version>
 
         <mockito.agent.path>
@@ -116,6 +117,11 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.instancio</groupId>

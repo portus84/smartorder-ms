@@ -1,7 +1,7 @@
 package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -57,7 +57,7 @@ class GetOrderByIdControllerTest {
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
     Assertions.assertNotNull(response.getContent());
-    assertThat(response.getContent().getId()).isEqualTo(mocked.getId().toHexString());
+    assertEquals(mocked.getId().toHexString(), response.getContent().getId());
 
     verify(orderService, times(1)).findById(mocked.getId());
   }

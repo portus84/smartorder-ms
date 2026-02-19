@@ -1,7 +1,7 @@
 package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -54,7 +54,7 @@ class GetInventoryByIdControllerTest {
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
     Assertions.assertNotNull(response.getContent());
-    assertThat(response.getContent().getId()).isEqualTo(mocked.getId());
+    assertEquals(mocked.getId(), response.getContent().getId());
 
     verify(inventoryService, times(1)).findById(mocked.getId());
   }

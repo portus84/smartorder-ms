@@ -1,6 +1,5 @@
 package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -10,7 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.querydsl.core.types.Predicate;
 import it.portus.ms.commons.mappers.PageToPagedModelMapper;
 import it.portus.smartorder.ms.orderservice.api.config.ControllerTestConfig;
@@ -20,6 +21,7 @@ import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderState;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
+import java.util.Collection;
 import java.util.List;
 import org.instancio.Instancio;
 import org.instancio.Select;
@@ -79,10 +81,7 @@ class GetOrdersControllerTest {
                 page, it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order.class);
 
     assertEquals(expectedPage.getMetadata(), responsePage.getMetadata());
-    assertThat(expectedPage.getContent())
-        .usingRecursiveComparison()
-        .ignoringFields("links")
-        .isEqualTo(responsePage.getContent());
+    assertPageEquals(expectedPage, responsePage);
 
     verify(orderService, times(1)).findAll(any(Predicate.class), any(Pageable.class));
   }
@@ -155,10 +154,7 @@ class GetOrdersControllerTest {
                 page, it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order.class);
 
     assertEquals(expectedPage.getMetadata(), responsePage.getMetadata());
-    assertThat(expectedPage.getContent())
-        .usingRecursiveComparison()
-        .ignoringFields("links")
-        .isEqualTo(responsePage.getContent());
+    assertPageEquals(expectedPage, responsePage);
 
     verify(orderService, times(1)).findAll(any(Predicate.class), any(Pageable.class));
   }
@@ -198,6 +194,26 @@ class GetOrdersControllerTest {
                 .andExpect(jsonPath("$.errorCode").exists())
                 .andExpect(jsonPath("$.errorMessage").exists())
                 .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
+  }
+
+  private void assertPageEquals(
+      PagedModel<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
+          expectedPage,
+      PagedModel<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
+          responsePage) {
+
+    Collection<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
+        expected = expectedPage.getContent();
+    Collection<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
+        actual = responsePage.getContent();
+
+    JsonNode expectedNode = objectMapper.valueToTree(expected);
+    JsonNode actualNode = objectMapper.valueToTree(actual);
+
+    expectedNode.forEach(n -> ((ObjectNode) n).remove("links"));
+    actualNode.forEach(n -> ((ObjectNode) n).remove("links"));
+
+    assertEquals(expectedNode, actualNode);
   }
 
   private static List<Order> getMockedOrders() {

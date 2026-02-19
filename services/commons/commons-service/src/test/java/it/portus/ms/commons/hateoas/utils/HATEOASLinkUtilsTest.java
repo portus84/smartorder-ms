@@ -1,6 +1,7 @@
 package it.portus.ms.commons.hateoas.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -39,7 +40,7 @@ class HATEOASLinkUtilsTest {
                     WebMvcLinkBuilder.methodOn(ControllerWithPlaceholder.class).dummyMethod())
                 .withSelfRel());
 
-    assertThat(link.getHref()).endsWith("/resolved/dummy");
+    assertTrue(link.getHref().endsWith("/resolved/dummy"));
   }
 
   @Test
@@ -54,7 +55,7 @@ class HATEOASLinkUtilsTest {
                     WebMvcLinkBuilder.methodOn(ControllerWithPlaceholder.class).dummyMethod())
                 .withSelfRel());
 
-    assertThat(link.getHref()).endsWith("/dummy");
+    assertTrue(link.getHref().endsWith("/dummy"));
   }
 
   @Test
@@ -69,7 +70,7 @@ class HATEOASLinkUtilsTest {
                     WebMvcLinkBuilder.methodOn(ControllerWithoutPlaceholder.class).dummyMethod())
                 .withSelfRel());
 
-    assertThat(link.getHref()).endsWith("/dummy");
+    assertTrue(link.getHref().endsWith("/dummy"));
   }
 
   @Test
@@ -89,9 +90,9 @@ class HATEOASLinkUtilsTest {
     List<Link> links =
         HATEOASLinkUtils.buildLinks(ControllerWithPlaceholder.class, environment, link1, link2);
 
-    assertThat(links).hasSize(2);
-    assertThat(links.get(0).getHref()).endsWith("/resolved/dummy");
-    assertThat(links.get(1).getHref()).endsWith("/dummy");
+    assertEquals(2, links.size());
+    assertTrue(links.get(0).getHref().endsWith("/resolved/dummy"));
+    assertTrue(links.get(1).getHref().endsWith("/dummy"));
   }
 
   @Test
@@ -109,7 +110,7 @@ class HATEOASLinkUtilsTest {
     Affordance resolved =
         HATEOASLinkUtils.buildAffordance(ControllerWithPlaceholder.class, environment, affordance);
 
-    resolved.forEach(link -> assertThat(link.getURI()).endsWith("/resolved/dummy"));
+    resolved.forEach(link -> assertTrue(link.getURI().endsWith("/resolved/dummy")));
   }
 
   @RequestMapping("${base.path:/default}")

@@ -1,7 +1,6 @@
 package it.portus.smartorder.ms.orderservice.api.hateoas;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import it.portus.smartorder.ms.orderservice.api.mappers.OrderMapper;
@@ -57,12 +56,12 @@ class HateoasOrderHelperTest {
     Order content = model.getContent();
     assertNotNull(content);
 
-    assertThat(content).isEqualTo(order);
+    assertEquals(order, content);
 
     Link actualSelf = model.getRequiredLink(IanaLinkRelations.SELF);
     assertNotNull(actualSelf);
-    assertThat(actualSelf.getRel()).isEqualTo(IanaLinkRelations.SELF);
-    assertThat(actualSelf.getHref()).contains(String.format("/orders/%s", order.getId()));
+    assertEquals(IanaLinkRelations.SELF, actualSelf.getRel());
+    assertTrue(actualSelf.getHref().contains(String.format("/orders/%s", order.getId())));
   }
 
   @Test
@@ -85,13 +84,17 @@ class HateoasOrderHelperTest {
     Collection<EntityModel<Order>> content = result.getContent();
 
     assertNotNull(content);
-    assertThat(content).hasSize(orders.size());
+    assertEquals(orders.size(), content.size());
 
-    assertThat(
-            content.stream()
-                .map(EntityModel::getContent)
-                .filter(Objects::nonNull)
-                .map(Order::getId))
-        .containsExactlyElementsOf(orders.stream().map(Order::getId).toList());
+    List<String> actualIds =
+        content.stream()
+            .map(EntityModel::getContent)
+            .filter(Objects::nonNull)
+            .map(Order::getId)
+            .toList();
+
+    List<String> expectedIds = orders.stream().map(Order::getId).toList();
+
+    assertIterableEquals(expectedIds, actualIds);
   }
 }

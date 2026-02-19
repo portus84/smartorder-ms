@@ -1,7 +1,7 @@
 package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -74,7 +74,7 @@ class PatchInventoryControllerTest {
         response.getContent();
     Assertions.assertNotNull(content);
 
-    assertThat(content.getId()).isEqualTo(updated.getId());
+    assertEquals(updated.getId(), content.getId());
 
     verify(inventoryService, times(1)).findById(any(UUID.class));
     verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));
@@ -114,7 +114,7 @@ class PatchInventoryControllerTest {
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
     Assertions.assertNotNull(response.getContent());
-    assertThat(response.getContent().getId()).isEqualTo(updated.getId());
+    assertEquals(updated.getId(), response.getContent().getId());
 
     verify(inventoryService, times(1)).findById(any(UUID.class));
     verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));

@@ -1,7 +1,6 @@
 package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -69,12 +68,12 @@ class AddOrderControllerTest {
     EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order> response =
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
-    assertThat(response).isNotNull();
+    assertNotNull(response);
     it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order content = response.getContent();
 
     Assertions.assertNotNull(content);
-    assertThat(content.getId()).isEqualTo(mocked.getId().toHexString());
-    assertThat(response.getLink(IanaLinkRelations.SELF.value())).isPresent();
+    assertEquals(mocked.getId().toHexString(), content.getId());
+    assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
     verify(orderService, times(1)).save(any(Order.class));
   }

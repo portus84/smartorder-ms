@@ -1,11 +1,9 @@
 package it.portus.smartorder.ms.orderservice.api.mappers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import it.portus.smartorder.ms.orderservice.api.config.MappersConfig;
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
-import org.bson.types.ObjectId;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,17 +24,21 @@ class OrderMapperTest {
     assertNotNull(dto);
     assertNotNull(dto.getId());
 
-    assertThat(dto)
-        .usingRecursiveComparison()
-        .withComparatorForFields(
-            (o1, o2) -> {
-              String idDTO = (String) o1;
-              ObjectId idBO = (ObjectId) o2;
+    assertDtoEqualsDomain(dto, domainBO);
+  }
 
-              return idDTO != null ? idDTO.compareTo(idBO.toHexString()) : -1;
-            },
-            "id")
-        .comparingOnlyFields("id", "description", "state", "createdDate", "lastModifiedDate")
-        .isEqualTo(domainBO);
+  private void assertDtoEqualsDomain(
+      it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order dto, Order domainBO) {
+    assertAll(
+        () -> assertEquals(dto.getId(), domainBO.getId().toHexString()),
+        () -> assertEquals(dto.getDescription(), domainBO.getDescription()),
+        () -> {
+          assertNotNull(dto.getState());
+          assertEquals(dto.getState().getReason(), domainBO.getState().getReason());
+          assertEquals(dto.getState().getStatus().name(), domainBO.getState().getStatus().name());
+        },
+        () -> assertNotNull(dto.getState()),
+        () -> assertEquals(dto.getCreatedDate(), domainBO.getCreatedDate()),
+        () -> assertEquals(dto.getLastModifiedDate(), domainBO.getLastModifiedDate()));
   }
 }

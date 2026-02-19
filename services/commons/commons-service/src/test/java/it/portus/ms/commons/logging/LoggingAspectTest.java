@@ -1,6 +1,6 @@
 package it.portus.ms.commons.logging;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import ch.qos.logback.classic.Level;
@@ -74,14 +74,14 @@ class LoggingAspectTest {
 
     Object result = loggingAspect.logMethod(joinPoint);
 
-    assertThat(result).isEqualTo("done");
+    assertEquals("done", result);
 
     List<ILoggingEvent> logs = listAppender.list;
-    assertThat(logs.stream().anyMatch(e -> e.getFormattedMessage().contains("START with args")))
-        .isTrue();
-    assertThat(logs.stream().anyMatch(e -> e.getFormattedMessage().contains("SUCCESS in")))
-        .isTrue();
-    assertThat(MDC.get(CORRELATION_ID_KEY)).isNull();
+
+    assertTrue(logs.stream().anyMatch(e -> e.getFormattedMessage().contains("START with args")));
+    assertTrue(logs.stream().anyMatch(e -> e.getFormattedMessage().contains("SUCCESS in")));
+
+    assertNull(MDC.get(CORRELATION_ID_KEY));
   }
 
   @Test
@@ -91,15 +91,16 @@ class LoggingAspectTest {
     Assertions.assertThrows(RuntimeException.class, () -> loggingAspect.logMethod(joinPoint));
 
     List<ILoggingEvent> logs = listAppender.list;
-    assertThat(
-            logs.stream()
-                .anyMatch(
-                    e ->
-                        e.getLevel() == Level.ERROR
-                            && e.getFormattedMessage().contains("ERROR in")
-                            && e.getFormattedMessage().contains("boom")))
-        .isTrue();
-    assertThat(MDC.get(CORRELATION_ID_KEY)).isNull();
+
+    assertTrue(
+        logs.stream()
+            .anyMatch(
+                e ->
+                    e.getLevel() == Level.ERROR
+                        && e.getFormattedMessage().contains("ERROR in")
+                        && e.getFormattedMessage().contains("boom")));
+
+    assertNull(MDC.get(CORRELATION_ID_KEY));
   }
 
   @Test
@@ -111,13 +112,13 @@ class LoggingAspectTest {
     loggingAspect.logMethod(joinPoint);
 
     List<ILoggingEvent> logs = listAppender.list;
-    assertThat(
-            logs.stream()
-                .anyMatch(
-                    e ->
-                        e.getFormattedMessage().contains("START with args")
-                            && e.getFormattedMessage().contains("[arg1, 42]")))
-        .isTrue();
+
+    assertTrue(
+        logs.stream()
+            .anyMatch(
+                e ->
+                    e.getFormattedMessage().contains("START with args")
+                        && e.getFormattedMessage().contains("[arg1, 42]")));
   }
 
   @Test
@@ -149,12 +150,11 @@ class LoggingAspectTest {
 
       Object result = loggingAspect.logMethod(joinPoint);
 
-      assertThat(result).isEqualTo("John");
+      assertEquals("John", result);
 
-      assertThat(
-              listAppender.list.stream()
-                  .anyMatch(e -> e.getFormattedMessage().contains("START with args")))
-          .isTrue();
+      assertTrue(
+          listAppender.list.stream()
+              .anyMatch(e -> e.getFormattedMessage().contains("START with args")));
     }
   }
 
@@ -169,6 +169,6 @@ class LoggingAspectTest {
 
     Object result = aspect.logMethod(joinPoint);
 
-    assertThat(result).isEqualTo("fromProceed");
+    assertEquals("fromProceed", result);
   }
 }

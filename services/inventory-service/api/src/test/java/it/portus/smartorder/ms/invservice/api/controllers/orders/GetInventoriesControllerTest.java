@@ -1,6 +1,5 @@
 package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -10,13 +9,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import it.portus.ms.commons.mappers.PageToPagedModelMapper;
 import it.portus.smartorder.ms.invservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.invservice.api.controller.impl.InventoriesApiDelegateImpl;
 import it.portus.smartorder.ms.invservice.api.v1.openapi.InventoriesApiController;
 import it.portus.smartorder.ms.invservice.business.domain.model.Inventory;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
+import java.util.Collection;
 import java.util.List;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Disabled;
@@ -73,10 +75,7 @@ class GetInventoriesControllerTest {
                 page, it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory.class);
 
     assertEquals(expectedPage.getMetadata(), responsePage.getMetadata());
-    assertThat(expectedPage.getContent())
-        .usingRecursiveComparison()
-        .ignoringFields("links")
-        .isEqualTo(responsePage.getContent());
+    assertPageEquals(expectedPage, responsePage);
 
     verify(inventoryService, times(1)).findAll(any(Pageable.class));
   }
@@ -148,6 +147,26 @@ class GetInventoriesControllerTest {
                 .andExpect(jsonPath("$.errorCode").exists())
                 .andExpect(jsonPath("$.errorMessage").exists())
                 .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
+  }
+
+  private void assertPageEquals(
+      PagedModel<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
+          expectedPage,
+      PagedModel<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
+          responsePage) {
+
+    Collection<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
+        expected = expectedPage.getContent();
+    Collection<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
+        actual = responsePage.getContent();
+
+    JsonNode expectedNode = objectMapper.valueToTree(expected);
+    JsonNode actualNode = objectMapper.valueToTree(actual);
+
+    expectedNode.forEach(n -> ((ObjectNode) n).remove("links"));
+    actualNode.forEach(n -> ((ObjectNode) n).remove("links"));
+
+    assertEquals(expectedNode, actualNode);
   }
 
   private static List<Inventory> getMockedInventories() {

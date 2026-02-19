@@ -1,7 +1,7 @@
 package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -78,7 +78,7 @@ class PatchOrderControllerTest {
     it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order content = response.getContent();
     Assertions.assertNotNull(content);
 
-    assertThat(content.getId()).isEqualTo(updated.getId().toHexString());
+    assertEquals(updated.getId().toHexString(), content.getId());
 
     verify(orderService, times(1)).findById(any(ObjectId.class));
     verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
@@ -119,7 +119,7 @@ class PatchOrderControllerTest {
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
     Assertions.assertNotNull(response.getContent());
-    assertThat(response.getContent().getId()).isEqualTo(updated.getId().toHexString());
+    assertEquals(updated.getId().toHexString(), response.getContent().getId());
 
     verify(orderService, times(1)).findById(any(ObjectId.class));
     verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));

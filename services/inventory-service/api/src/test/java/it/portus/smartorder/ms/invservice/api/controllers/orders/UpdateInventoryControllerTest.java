@@ -1,7 +1,6 @@
 package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -67,8 +66,8 @@ class UpdateInventoryControllerTest {
     it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory content =
         response.getContent();
     Assertions.assertNotNull(content);
-    assertThat(content.getId()).isEqualTo(mocked.getId());
-    assertThat(response.getLink(IanaLinkRelations.SELF.value())).isPresent();
+    assertEquals(mocked.getId(), content.getId());
+    assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
     verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));
   }
