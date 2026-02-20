@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.7</version>
+        <version>3.5.11</version>
     </parent>
 
     <groupId>it.portus.smartorder</groupId>
@@ -38,12 +38,10 @@
         <evo-inflector.version>1.3</evo-inflector.version>
         <commons-lang3.version>3.19.0</commons-lang3.version>
         <commons-collections.version>4.5.0</commons-collections.version>
-        <logback.version>1.5.25</logback.version>
         <guava.version>33.5.0-jre</guava.version>
         <httpclient.version>4.5.14</httpclient.version>
         <drools.version>10.1.0</drools.version>
 
-        <assertj.version>3.27.7</assertj.version>
         <instancio.version>5.5.1</instancio.version>
 
         <mockito.agent.path>
@@ -99,16 +97,6 @@
                 <version>${commons-collections.version}</version>
             </dependency>
             <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
@@ -117,11 +105,6 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>${assertj.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.instancio</groupId>
