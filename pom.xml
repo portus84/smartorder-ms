@@ -40,6 +40,7 @@
         <commons-collections.version>4.5.0</commons-collections.version>
         <guava.version>33.5.0-jre</guava.version>
         <httpclient.version>4.5.14</httpclient.version>
+        <openfeign.querydsl.version>7.1</openfeign.querydsl.version>
         <drools.version>10.1.0</drools.version>
 
         <instancio.version>5.5.1</instancio.version>
@@ -110,6 +111,13 @@
                 <groupId>org.instancio</groupId>
                 <artifactId>instancio-core</artifactId>
                 <version>${instancio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.openfeign.querydsl</groupId>
+                <artifactId>querydsl-bom</artifactId>
+                <version>${openfeign.querydsl.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
