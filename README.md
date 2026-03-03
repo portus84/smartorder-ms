@@ -9,6 +9,19 @@ SmartOrder is a **microservices-based reference platform** built with **Spring B
 The project emphasizes **clean architecture**, **event-driven communication**, **cloud-native patterns**, and **developer experience**.
 
 ---
+## 📖 Articles & Deep Dive
+
+SmartOrder is explained in detail in the following articles:
+
+### Dev.to Series
+- [SmartOrder – A Modern Microservices Reference Platform](https://dev.to/portus84/smartorder-a-modern-microservices-reference-platform-ng8)
+
+### Medium Publication
+- [SmartOrder – A Modern Microservices Reference Platform](https://medium.com/@francesco.portus/list/smartorder-a-modern-microservices-reference-platform-fb04ed900a1a)
+
+These articles provide a complete architectural walkthrough of the platform, from high-level design to service implementation details.
+
+---
 ## 🎯 Project Goals
 
 - Provide a realistic microservices reference architecture
