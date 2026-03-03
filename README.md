@@ -164,6 +164,87 @@ The project includes a **complete observability stack**, fully dockerized.
 
 ---
 
+## 📦 Build, Test & Code Coverage (Maven)
+
+This project uses **Maven** as the build system. The following instructions assume you have:
+
+- **Java JDK installed** (version required by the project, minimum jdk version is 21)
+- **Maven installed** or use the provided Maven Wrapper (`mvnw` / `mvnw.cmd`)
+- Your `JAVA_HOME` and `PATH` configured appropriately
+
+### ✅ 1. Build the Project
+To compile the application and package all modules:
+```bash
+# Using installed Maven
+mvn clean install
+# Or using the Maven wrapper
+./mvnw clean install
+```
+
+The above command will:
+- Download dependencies
+- Compile source code
+- Run tests
+- Build artifacts (JARs, modules, etc.)
+
+If you want to skip tests during build:
+```bash
+mvn clean install -DskipTests
+./mvnw clean install -DskipTests
+```
+
+### 🧪 2. Run Tests
+To run all tests:
+```bash
+mvn test
+# Or with the Maven wrapper
+./mvnw test
+```
+Test reports are generated under:
+```text
+target/surefire-reports/
+```
+
+### 📊 3. Generate JaCoCo Code Coverage Report
+To generate the JaCoCo coverage report:
+```bash
+mvn clean test jacoco:report
+```
+
+Or as part of the full build:
+```bash
+mvn clean install jacoco:report
+```
+
+This will:
+- Execute tests with the JaCoCo agent enabled
+- Produce coverage data
+- Generate an HTML coverage report
+
+#### 📁 Coverage Report Location
+After execution, the report will be available at:
+
+```text
+target/site/jacoco/index.html
+```
+
+Open this file in your browser to view detailed coverage metrics.
+
+### Additional Commands
+Run the full verification lifecycle:
+
+```bash
+mvn verify
+./mvnw verify
+```
+
+Skip both tests and coverage:
+```bash
+mvn clean install -DskipTests -Djacoco.skip=true
+```
+
+---
+
 ## 🐳 Docker & Local Development
 
 The `docker/` directory is **highly structured** and represents a key strength of this repository.
