@@ -11,9 +11,9 @@
 
 ## Sequence diagram
 
-|                       *Sequence diagram*                        |
-|:---------------------------------------------------------------:|
-| ![Sequence diagram](./docs/diagrams//sequence-order-create.svg) |
+|                     *Sequence diagram*                     |
+|:----------------------------------------------------------:|
+| ![Sequence diagram](./diagrams//sequence-order-create.svg) |
 
 ## Operational notes
 

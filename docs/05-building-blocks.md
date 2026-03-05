@@ -20,14 +20,14 @@
 
 ## Diagrams
 
-|               *System Context (C4 Context)*                |
-|:----------------------------------------------------------:|
-| ![System Context (C4 Context](./docs/diagrams/context.svg) |
+|             *System Context (C4 Context)*             |
+|:-----------------------------------------------------:|
+| ![System Context (C4 Context](./diagrams/context.svg) |
 
-|                 *Container Level C4 diagram*                 |
-|:------------------------------------------------------------:|
-| ![Container Level C4 diagram](./docs/diagrams/container.svg) |
+|              *Container Level C4 diagram*               |
+|:-------------------------------------------------------:|
+| ![Container Level C4 diagram](./diagrams/container.svg) |
 
-|                        *Component Diagram for Order Service*                        |
-|:-----------------------------------------------------------------------------------:|
-| ![Component Diagram for Order Service](./docs/diagrams/component-order-service.svg) |
+|                     *Component Diagram for Order Service*                      |
+|:------------------------------------------------------------------------------:|
+| ![Component Diagram for Order Service](./diagrams/component-order-service.svg) |
