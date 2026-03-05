@@ -31,7 +31,6 @@
         <openapi.generator.version>7.17.0</openapi.generator.version>
         <zenwave.version>2.2.0</zenwave.version>
         <springdoc-webmvc.version>2.8.13</springdoc-webmvc.version>
-        <cloud.localstack.version>2.21.5</cloud.localstack.version>
         <scalar-webflux.version>0.5.8</scalar-webflux.version>
         <jspecify.version>1.0.0</jspecify.version>
 
@@ -42,6 +41,7 @@
         <guava.version>33.5.0-jre</guava.version>
         <httpclient.version>4.5.14</httpclient.version>
         <openfeign.querydsl.version>7.1</openfeign.querydsl.version>
+        <mysema.version>0.2.4</mysema.version>
         <drools.version>10.1.0</drools.version>
 
         <instancio.version>5.5.1</instancio.version>
@@ -56,7 +56,7 @@
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <codefilarete.jacoco.version>1.0.0</codefilarete.jacoco.version>
-        <apt-maven-plugin>1.1.3</apt-maven-plugin>
+        <mysema.apt-maven-plugin.version>1.1.3</mysema.apt-maven-plugin.version>
     </properties>
 
     <modules>
@@ -112,6 +112,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons-collections.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mysema.commons</groupId>
+                <artifactId>mysema-commons-lang</artifactId>
+                <version>${mysema.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -228,7 +233,7 @@
                 <plugin>
                     <groupId>com.mysema.maven</groupId>
                     <artifactId>apt-maven-plugin</artifactId>
-                    <version>${apt-maven-plugin}</version>
+                    <version>${mysema.apt-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -278,30 +283,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>cloud</id>
-
-            <dependencies>
-                <dependency>
-                    <groupId>software.amazon.awssdk</groupId>
-                    <artifactId>s3</artifactId>
-                    <version>${cloud.localstack.version}</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>software.amazon.awssdk</groupId>
-                    <artifactId>dynamodb</artifactId>
-                    <version>${cloud.localstack.version}</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>software.amazon.awssdk</groupId>
-                    <artifactId>auth</artifactId>
-                    <version>${cloud.localstack.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 </project>
