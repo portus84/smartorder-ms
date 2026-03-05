@@ -365,7 +365,7 @@ The `docker-compose.all.yml` file orchestrates **the entire ecosystem.**
 ### Start the entire platform
 
 > **⚠️ IMPORTANT**: Build the platform **without enabling any Spring profiles**.
-> The Docker environment will simulate a **production-like setup**.
+> The Docker environment will simulate a **production-like setup**.   
 > The `dev` profile is intended **exclusively for running the microservices locally during development**.
 
 The **whole SmartOrder platform** (infrastructure + services + observability) can be started using:
