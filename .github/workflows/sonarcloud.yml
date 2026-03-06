@@ -62,6 +62,4 @@ jobs:
 
       - name: SonarCloud analysis
         run: mvn sonar:sonar \
-          -Dsonar.projectKey=portus84_smartorder-ms \
-          -Dsonar.organization=portus84 \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
