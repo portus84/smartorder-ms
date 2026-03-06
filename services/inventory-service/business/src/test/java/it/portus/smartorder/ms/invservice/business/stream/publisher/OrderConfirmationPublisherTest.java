@@ -7,6 +7,7 @@ import it.portus.smartorder.events.OrderCreatedEvent;
 import it.portus.smartorder.events.OrderOutOfStockEvent;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
 import it.portus.smartorder.ms.invservice.business.stream.BindingNames;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,8 +21,12 @@ class OrderConfirmationPublisherTest {
   @Mock private StreamBridge streamBridge;
   @Mock private InventoryService inventoryService;
 
-  private final OrderConfirmationPublisher orderConfirmationPublisher =
-      new OrderConfirmationPublisher(streamBridge, inventoryService);
+  private OrderConfirmationPublisher orderConfirmationPublisher;
+
+  @BeforeEach
+  void setUp() {
+    orderConfirmationPublisher = new OrderConfirmationPublisher(streamBridge, inventoryService);
+  }
 
   @Test
   void send_OrderAvailable_SendsOrderConfirmedEvent() {
