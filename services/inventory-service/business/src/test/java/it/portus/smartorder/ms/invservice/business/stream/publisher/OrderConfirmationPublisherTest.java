@@ -1,4 +1,4 @@
-package it.portus.smartorder.ms.invservice.business.stream.conf;
+package it.portus.smartorder.ms.invservice.business.stream.publisher;
 
 import static org.mockito.Mockito.*;
 
@@ -7,38 +7,31 @@ import it.portus.smartorder.events.OrderCreatedEvent;
 import it.portus.smartorder.events.OrderOutOfStockEvent;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
 import it.portus.smartorder.ms.invservice.business.stream.BindingNames;
-import java.util.function.Consumer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.stream.function.StreamBridge;
 
 @ExtendWith(MockitoExtension.class)
-class OrderConsumersConfigurationTest {
+class OrderConfirmationPublisherTest {
 
-  @Mock private org.springframework.cloud.stream.function.StreamBridge streamBridge;
+  @Mock private StreamBridge streamBridge;
   @Mock private InventoryService inventoryService;
 
-  private Consumer<OrderCreatedEvent> consumer;
-
-  @BeforeEach
-  void setUp() {
-    OrderConsumersConfiguration config =
-        new OrderConsumersConfiguration(streamBridge, inventoryService);
-    consumer = config.orderCreatedConsumer();
-  }
+  private final OrderConfirmationPublisher orderConfirmationPublisher =
+      new OrderConfirmationPublisher(streamBridge, inventoryService);
 
   @Test
-  void orderCreatedConsumer_OrderAvailable_SendsOrderConfirmedEvent() {
+  void send_OrderAvailable_SendsOrderConfirmedEvent() {
     String orderId = "123";
     OrderCreatedEvent event = new OrderCreatedEvent();
     event.setOrderId(orderId);
 
     when(inventoryService.checkAvailability(orderId)).thenReturn(true);
 
-    consumer.accept(event);
+    orderConfirmationPublisher.send(event);
 
     ArgumentCaptor<OrderConfirmedEvent> captor = ArgumentCaptor.forClass(OrderConfirmedEvent.class);
     verify(streamBridge).send(eq(BindingNames.PUBLISH_ORDER_CONFIRMED), captor.capture());
@@ -50,14 +43,14 @@ class OrderConsumersConfigurationTest {
   }
 
   @Test
-  void orderCreatedConsumer_OrderNotAvailable_SendsOrderOutOfStockEvent() {
+  void send_OrderNotAvailable_SendsOrderOutOfStockEvent() {
     String orderId = "456";
     OrderCreatedEvent event = new OrderCreatedEvent();
     event.setOrderId(orderId);
 
     when(inventoryService.checkAvailability(orderId)).thenReturn(false);
 
-    consumer.accept(event);
+    orderConfirmationPublisher.send(event);
 
     ArgumentCaptor<OrderOutOfStockEvent> captor =
         ArgumentCaptor.forClass(OrderOutOfStockEvent.class);

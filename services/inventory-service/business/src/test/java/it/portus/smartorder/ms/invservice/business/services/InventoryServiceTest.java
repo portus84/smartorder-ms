@@ -153,6 +153,15 @@ class InventoryServiceTest {
     assertFalse(saved.iterator().hasNext(), "Saving empty list should return empty iterable");
   }
 
+  @Test
+  void checkAvailability_returnsTrue_forAnyOrderId() {
+    String orderId = "ORDER-123";
+
+    boolean available = inventoryService.checkAvailability(orderId);
+
+    assertTrue(available);
+  }
+
   private Inventory newInventory() {
     return Instancio.of(Inventory.class)
         .ignore(Select.field(Inventory::getId))
