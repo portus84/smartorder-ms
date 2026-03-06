@@ -3,6 +3,7 @@ package it.portus.smartorder.ms.invservice.business.stream.conf;
 import it.portus.smartorder.events.OrderConfirmedEvent;
 import it.portus.smartorder.events.OrderCreatedEvent;
 import it.portus.smartorder.events.OrderOutOfStockEvent;
+import it.portus.smartorder.ms.invservice.business.services.InventoryService;
 import it.portus.smartorder.ms.invservice.business.stream.BindingNames;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ public class OrderConsumersConfiguration {
 
   private final StreamBridge streamBridge;
 
+  private final InventoryService inventoryService;
+
   @Bean
   public Consumer<OrderCreatedEvent> orderCreatedConsumer() {
     return event -> {
@@ -25,7 +28,7 @@ public class OrderConsumersConfiguration {
 
       log.info("Received order {} in inventory service", orderId);
 
-      boolean available = checkInventory();
+      boolean available = checkInventory(event);
 
       if (available) {
         log.debug("Order {} is available, sending confirmation", orderId);
@@ -37,9 +40,8 @@ public class OrderConsumersConfiguration {
     };
   }
 
-  private boolean checkInventory() {
-    // TODO: implement real inventory check
-    return true; // NOSONAR
+  private boolean checkInventory(OrderCreatedEvent event) {
+    return inventoryService.checkAvailability(event.getOrderId());
   }
 
   private void sendConfirmation(String orderId, boolean confirmed, String reason) {

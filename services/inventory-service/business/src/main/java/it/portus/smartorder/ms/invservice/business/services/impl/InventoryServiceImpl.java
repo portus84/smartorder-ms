@@ -14,4 +14,10 @@ public class InventoryServiceImpl extends JpaCrudService<Inventory, UUID>
   public InventoryServiceImpl(InventoryRepository repository) {
     super(repository);
   }
+
+  @Override
+  public boolean checkAvailability(String orderId) {
+    // TODO: add product items to the Order model and verify each single one
+    return true;
+  }
 }
