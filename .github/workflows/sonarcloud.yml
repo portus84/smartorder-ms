@@ -54,12 +54,7 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build, test and generate Jacoco coverage
-        run: mvn clean verify
-
-      - name: List Jacoco reports
-        run: find . -name "jacoco*.xml"
-
-      - name: SonarCloud analysis
-        run: mvn sonar:sonar \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      - name: Build, test and SonarCloud analysis
+        run: mvn -B clean verify sonar:sonar \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
