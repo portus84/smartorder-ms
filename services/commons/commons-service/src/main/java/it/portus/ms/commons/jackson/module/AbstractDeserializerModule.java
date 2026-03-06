@@ -12,7 +12,8 @@ public class AbstractDeserializerModule<T> extends SimpleModule {
   private final transient Function<JavaType, JsonDeserializer<? extends T>> deserializerFactory;
 
   public AbstractDeserializerModule(
-      @NonNull Class<? super T> rawType, @NonNull Function<JavaType, JsonDeserializer<? extends T>> factory) {
+      @NonNull Class<? super T> rawType,
+      @NonNull Function<JavaType, JsonDeserializer<? extends T>> factory) {
     this.rawType = rawType;
     this.deserializerFactory = factory;
   }

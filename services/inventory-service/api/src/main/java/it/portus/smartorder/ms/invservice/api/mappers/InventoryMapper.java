@@ -19,10 +19,12 @@ public interface InventoryMapper
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdDate", ignore = true)
   @Mapping(target = "lastModifiedDate", ignore = true)
-  Inventory toBO(it.portus.smartorder.ms.invservice.api.v1.openapi.model.CreateInventoryRequest source);
+  Inventory toBO(
+      it.portus.smartorder.ms.invservice.api.v1.openapi.model.CreateInventoryRequest source);
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdDate", ignore = true)
   @Mapping(target = "lastModifiedDate", ignore = true)
-  Inventory toBO(it.portus.smartorder.ms.invservice.api.v1.openapi.model.UpdateInventoryRequest source);
+  Inventory toBO(
+      it.portus.smartorder.ms.invservice.api.v1.openapi.model.UpdateInventoryRequest source);
 }

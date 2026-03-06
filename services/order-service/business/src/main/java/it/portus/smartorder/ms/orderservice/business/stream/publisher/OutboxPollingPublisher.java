@@ -34,7 +34,7 @@ public class OutboxPollingPublisher {
     }
   }
 
-    public void pollAndSend() {
+  public void pollAndSend() {
     try {
       outboxRepository.findByStatus(EventStatus.PENDING).forEach(outboxSender::sendAsync);
     } catch (Exception e) {

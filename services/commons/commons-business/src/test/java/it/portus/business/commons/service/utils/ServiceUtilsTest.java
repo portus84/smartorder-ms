@@ -6,7 +6,6 @@ import it.portus.business.commons.model.Entity;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;

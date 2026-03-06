@@ -54,6 +54,7 @@
         <build.helper.plugin.version>3.6.0</build.helper.plugin.version>
         <maven.dependency.plugin.version>3.8.1</maven.dependency.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+        <maven.spotless-maven-plugin.version>3.3.0</maven.spotless-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <codefilarete.jacoco.version>1.0.0</codefilarete.jacoco.version>
         <mysema.apt-maven-plugin.version>1.1.3</mysema.apt-maven-plugin.version>
@@ -150,17 +151,24 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!--
                 <plugin>
                     <groupId>com.diffplug.spotless</groupId>
                     <artifactId>spotless-maven-plugin</artifactId>
+                    <version>${maven.spotless-maven-plugin.version}</version>
                     <configuration>
                         <java>
                             <googleJavaFormat />
                         </java>
                     </configuration>
+                    <executions>
+                        <execution>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>apply</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
-                -->
 
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
@@ -261,6 +269,12 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.codefilarete</groupId>
                 <artifactId>jacoco-aggregate-submodule</artifactId>
