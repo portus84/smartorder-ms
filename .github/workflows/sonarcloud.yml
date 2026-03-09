@@ -56,10 +56,10 @@ jobs:
 
       - name: Build, test and SonarCloud analysis
         run: |
-          mvn -B clean verify
-          mvn -B sonar:sonar \
+          mvn -B clean verify sonar:sonar \
             -Dsonar.projectKey=portus84_smartorder-ms \
             -Dsonar.organization=portus84 \
+            -Dsonar.projectName=smartorder-ms \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.exclusions=**/generated/**,**/config/**,**/tmp/**,**/openapi/** \
