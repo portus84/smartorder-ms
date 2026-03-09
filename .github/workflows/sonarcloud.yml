@@ -62,5 +62,6 @@ jobs:
             -Dsonar.projectName=smartorder-ms \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.scanner.forceReloadAll=true \
             -Dsonar.exclusions=**/generated/**,**/config/**,**/tmp/**,**/openapi/** \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml,target/site/jacoco/jacoco.xml
