@@ -30,7 +30,7 @@ class OrderMapperTest {
   private void assertDtoEqualsDomain(
       it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order dto, Order domainBO) {
     assertAll(
-        () -> assertEquals(dto.getId(), domainBO.getId().toHexString()),
+        () -> assertEquals(dto.getId(), domainBO.getId()),
         () -> assertEquals(dto.getDescription(), domainBO.getDescription()),
         () -> {
           assertNotNull(dto.getState());

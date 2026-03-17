@@ -12,9 +12,9 @@ import it.portus.smartorder.ms.orderservice.business.domain.model.QOrder;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.bson.types.ObjectId;
 import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.*;
 import org.springframework.http.ResponseEntity;
@@ -56,9 +56,9 @@ public class OrdersApiDelegateImpl implements OrdersApiDelegate {
   }
 
   @Override
-  public ResponseEntity<EntityModel<Order>> getOrderById(String id) {
+  public ResponseEntity<EntityModel<Order>> getOrderById(UUID id) {
     return orderService
-        .findById(new ObjectId(id))
+        .findById(id)
         .map(orderMapper::toDTO)
         .map(hateoasHelper::toEntityModel)
         .map(ResponseEntity::ok)
@@ -81,19 +81,18 @@ public class OrdersApiDelegateImpl implements OrdersApiDelegate {
   }
 
   @Override
-  public ResponseEntity<EntityModel<Order>> updateOrder(
-      String id, UpdateOrderRequest updateRequest) {
+  public ResponseEntity<EntityModel<Order>> updateOrder(UUID id, UpdateOrderRequest updateRequest) {
     return orderService
-        .update(new ObjectId(id), orderMapper.toBO(updateRequest))
+        .update(id, orderMapper.toBO(updateRequest))
         .map(updatedEntity -> hateoasHelper.toEntityModel(orderMapper.toDTO(updatedEntity)))
         .map(ResponseEntity::ok)
         .orElseThrow(() -> new OrderNotFoundException(id));
   }
 
   @Override
-  public ResponseEntity<Void> deleteOrder(String id) {
+  public ResponseEntity<Void> deleteOrder(UUID id) {
     return orderService
-        .findById(new ObjectId(id))
+        .findById(id)
         .map(
             existing -> {
               orderService.delete(existing);
@@ -103,9 +102,9 @@ public class OrdersApiDelegateImpl implements OrdersApiDelegate {
   }
 
   @Override
-  public ResponseEntity<EntityModel<Order>> patchOrder(String id, OrderPatchRequest patchRequest) {
+  public ResponseEntity<EntityModel<Order>> patchOrder(UUID id, OrderPatchRequest patchRequest) {
     return orderService
-        .findById(new ObjectId(id))
+        .findById(id)
         .flatMap(
             existing -> orderService.update(existing.getId(), applyPatch(existing, patchRequest)))
         .map(

@@ -1,6 +1,5 @@
 package it.portus.smartorder.ms.orderservice.api.mappers;
 
-import it.portus.ms.commons.mappers.ObjectIdMapper;
 import it.portus.ms.commons.mappers.PageContentMapper;
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import org.mapstruct.InheritConfiguration;
@@ -10,7 +9,7 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(
     componentModel = MappingConstants.ComponentModel.SPRING,
-    uses = {ObjectIdMapper.class, OrderStateMapper.class})
+    uses = {OrderStateMapper.class})
 public interface OrderMapper
     extends PageContentMapper<
         Order, it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order> {

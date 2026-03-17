@@ -15,8 +15,7 @@ import it.portus.smartorder.ms.orderservice.api.v1.openapi.model.*;
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Optional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -46,9 +45,8 @@ class PatchOrderControllerTest {
     Order existing = Instancio.create(Order.class);
     Order updated = Instancio.create(Order.class);
 
-    when(orderService.findById(any(ObjectId.class))).thenReturn(Optional.of(existing));
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
-        .thenReturn(Optional.of(updated));
+    when(orderService.findById(any(UUID.class))).thenReturn(Optional.of(existing));
+    when(orderService.update(any(UUID.class), any(Order.class))).thenReturn(Optional.of(updated));
 
     OrderDetailsPatchOperation patchOp =
         new OrderDetailsPatchOperation()
@@ -60,7 +58,7 @@ class PatchOrderControllerTest {
     String responseJson =
         mockMvc
             .perform(
-                patch(ENDPOINT + "/" + existing.getId().toHexString())
+                patch(ENDPOINT + "/" + existing.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson))
             .andExpect(status().isOk())
@@ -78,10 +76,10 @@ class PatchOrderControllerTest {
     it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order content = response.getContent();
     Assertions.assertNotNull(content);
 
-    assertEquals(updated.getId().toHexString(), content.getId());
+    assertEquals(updated.getId(), content.getId());
 
-    verify(orderService, times(1)).findById(any(ObjectId.class));
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).findById(any(UUID.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
@@ -89,9 +87,8 @@ class PatchOrderControllerTest {
     Order existing = Instancio.create(Order.class);
     Order updated = Instancio.create(Order.class);
 
-    when(orderService.findById(any(ObjectId.class))).thenReturn(Optional.of(existing));
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
-        .thenReturn(Optional.of(updated));
+    when(orderService.findById(any(UUID.class))).thenReturn(Optional.of(existing));
+    when(orderService.update(any(UUID.class), any(Order.class))).thenReturn(Optional.of(updated));
 
     OrderStatusPatchOperation patchOp =
         new OrderStatusPatchOperation()
@@ -103,7 +100,7 @@ class PatchOrderControllerTest {
     String responseJson =
         mockMvc
             .perform(
-                patch(ENDPOINT + "/" + existing.getId().toHexString())
+                patch(ENDPOINT + "/" + existing.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson))
             .andExpect(status().isOk())
@@ -119,17 +116,17 @@ class PatchOrderControllerTest {
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
     Assertions.assertNotNull(response.getContent());
-    assertEquals(updated.getId().toHexString(), response.getContent().getId());
+    assertEquals(updated.getId(), response.getContent().getId());
 
-    verify(orderService, times(1)).findById(any(ObjectId.class));
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).findById(any(UUID.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
   void patchOrder_WhenOrderDoesNotExist_ReturnsNotFound() throws Exception {
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
-    when(orderService.findById(any(ObjectId.class))).thenReturn(Optional.empty());
+    when(orderService.findById(any(UUID.class))).thenReturn(Optional.empty());
 
     OrderDetailsPatchOperation patchOp = Instancio.create(OrderDetailsPatchOperation.class);
 
@@ -147,13 +144,13 @@ class PatchOrderControllerTest {
                 .andExpect(jsonPath("$.errorMessage").exists())
                 .andExpect(jsonPath("$.detailMessage").exists()));
 
-    verify(orderService, times(1)).findById(any(ObjectId.class));
+    verify(orderService, times(1)).findById(any(UUID.class));
   }
 
   @Test
   void patchOrder_WhenInvalidRequestBody_ReturnsBadRequest() {
     String invalidJson = "{ invalid json }";
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
     assertDoesNotThrow(
         () ->
@@ -169,8 +166,8 @@ class PatchOrderControllerTest {
   void patchOrder_WhenValidationFails_ReturnsUnprocessableEntity() throws Exception {
     Order existing = Instancio.create(Order.class);
 
-    when(orderService.findById(any(ObjectId.class))).thenReturn(Optional.of(existing));
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
+    when(orderService.findById(any(UUID.class))).thenReturn(Optional.of(existing));
+    when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new IllegalArgumentException("Invalid patch data"));
 
     OrderDetailsPatchOperation patchOp = Instancio.create(OrderDetailsPatchOperation.class);
@@ -181,20 +178,20 @@ class PatchOrderControllerTest {
         () ->
             mockMvc
                 .perform(
-                    patch(ENDPOINT + "/" + existing.getId().toHexString())
+                    patch(ENDPOINT + "/" + existing.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isUnprocessableEntity()));
 
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
   void patchOrder_WhenDatabaseUnavailable_ReturnsInternalServerError() throws Exception {
     Order existing = Instancio.create(Order.class);
 
-    when(orderService.findById(any(ObjectId.class))).thenReturn(Optional.of(existing));
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
+    when(orderService.findById(any(UUID.class))).thenReturn(Optional.of(existing));
+    when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new RuntimeException("DB unavailable"));
 
     OrderDetailsPatchOperation patchOp = Instancio.create(OrderDetailsPatchOperation.class);
@@ -205,7 +202,7 @@ class PatchOrderControllerTest {
         () ->
             mockMvc
                 .perform(
-                    patch(ENDPOINT + "/" + existing.getId().toHexString())
+                    patch(ENDPOINT + "/" + existing.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isInternalServerError())
@@ -213,12 +210,12 @@ class PatchOrderControllerTest {
                 .andExpect(jsonPath("$.errorMessage").exists())
                 .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
 
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
   void patchOrder_WhenOperationMissing_ReturnsBadRequest() {
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
     String jsonMissingOperation =
         """
@@ -239,7 +236,7 @@ class PatchOrderControllerTest {
 
   @Test
   void patchOrder_WhenOperationNotRecognized_ReturnsBadRequest() {
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
     String jsonInvalidOperation =
         """

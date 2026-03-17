@@ -9,7 +9,7 @@ import it.portus.smartorder.ms.orderservice.business.rules.order.OrderRuleEngine
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.List;
 import java.util.Optional;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,7 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implements OrderService {
+public class OrderServiceImpl extends MongoCrudService<Order, UUID> implements OrderService {
 
   private static final class CacheNames {
     public static final String ORDERS = "orders";
@@ -31,14 +31,15 @@ public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implemen
   @Nullable private final OrderRuleEngine rulesService;
 
   public OrderServiceImpl(
-      OrderRepository repository, @Autowired(required = false) OrderRuleEngine rulesService) {
+      OrderRepository repository,
+      @Autowired(required = false) @Nullable OrderRuleEngine rulesService) {
     super(repository);
     this.rulesService = rulesService;
   }
 
   @Override
   @Caching(
-      put = {@CachePut(value = CacheNames.ORDERS, key = "#result.id.toHexString()")},
+      put = {@CachePut(value = CacheNames.ORDERS, key = "#result.id.toString()")},
       evict = {@CacheEvict(value = CacheNames.ORDERS_ALL, allEntries = true)})
   @SuppressWarnings("unchecked")
   public <S extends Order> S save(S entity) {
@@ -50,11 +51,11 @@ public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implemen
       put = {
         @CachePut(
             value = CacheNames.ORDERS,
-            key = "#result.id.toHexString()",
+            key = "#result.id.toString()",
             condition = "#result != null")
       },
       evict = {@CacheEvict(value = CacheNames.ORDERS_ALL, allEntries = true)})
-  public <S extends Order> Optional<S> update(ObjectId id, S entity) {
+  public <S extends Order> Optional<S> update(UUID id, S entity) {
     return super.findById(id)
         .flatMap(
             existing -> {
@@ -70,9 +71,9 @@ public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implemen
   }
 
   @Override
-  @Cacheable(value = CacheNames.ORDERS, key = "#p0.toHexString()")
-  public Optional<Order> findById(ObjectId objectId) {
-    return super.findById(objectId);
+  @Cacheable(value = CacheNames.ORDERS, key = "#p0.toString()")
+  public Optional<Order> findById(UUID id) {
+    return super.findById(id);
   }
 
   @Override
@@ -95,17 +96,17 @@ public class OrderServiceImpl extends MongoCrudService<Order, ObjectId> implemen
   @Override
   @Caching(
       evict = {
-        @CacheEvict(value = CacheNames.ORDERS, key = "#p0.toHexString()"),
+        @CacheEvict(value = CacheNames.ORDERS, key = "#p0.toString()"),
         @CacheEvict(value = CacheNames.ORDERS_ALL, allEntries = true)
       })
-  public void deleteById(ObjectId objectId) {
-    super.deleteById(objectId);
+  public void deleteById(UUID id) {
+    super.deleteById(id);
   }
 
   @Override
   @Caching(
       evict = {
-        @CacheEvict(value = CacheNames.ORDERS, key = "#p0.id.toHexString()"),
+        @CacheEvict(value = CacheNames.ORDERS, key = "#p0.id.toString()"),
         @CacheEvict(value = CacheNames.ORDERS_ALL, allEntries = true)
       })
   public void delete(Order entity) {

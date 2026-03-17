@@ -5,10 +5,10 @@ import it.portus.smartorder.events.OrderOutOfStockEvent;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderState;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
+import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,7 +38,7 @@ public class OrderAvailabilityListener {
     }
 
     orderService
-        .findById(new ObjectId(orderId))
+        .findById(UUID.fromString(orderId))
         .ifPresentOrElse(
             order -> {
               order.setState(OrderState.builder().status(status).reason(reason).build());

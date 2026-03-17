@@ -234,6 +234,8 @@
                     <configuration>
                         <excludes>
                             <exclude>**/openapi/**</exclude>
+                            <exclude>**/*Builder*</exclude>
+                            <exclude>**/model/**</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

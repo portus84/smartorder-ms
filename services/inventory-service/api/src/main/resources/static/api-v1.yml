@@ -299,8 +299,8 @@ components:
   schemas:
     ID:
       type: string
-      description: "The identifier is a standard UUID (RFC 4122)."
       format: uuid
+      description: "The identifier is a standard UUID (RFC 4122)."
       example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
 
     Inventory:

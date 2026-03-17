@@ -305,10 +305,9 @@ components:
   schemas:
     ID:
       type: string
-      description: "The identifier is a 24-character hexadecimal string."
-      pattern: "^[a-fA-F0-9]{24}$"
-      example: "655f4105c31f4a9b0c268a73"
-
+      format: uuid
+      description: "The identifier is a standard UUID (RFC 4122)."
+      example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
     Order:
       required:
         - id

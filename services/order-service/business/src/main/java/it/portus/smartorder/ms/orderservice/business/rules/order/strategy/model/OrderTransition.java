@@ -1,6 +1,6 @@
 package it.portus.smartorder.ms.orderservice.business.rules.order.strategy.model;
 
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 
-public record OrderTransition(ObjectId orderId, OrderStatus targetStatus) {}
+public record OrderTransition(UUID orderId, OrderStatus targetStatus) {}

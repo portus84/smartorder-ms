@@ -32,7 +32,7 @@ public class OrderEventListener extends AbstractMongoEventListener<Order> {
     if (orderState != null) {
       if (OrderStatus.PENDING.equals(orderState.getStatus())) {
         OrderCreatedEvent cloudEvent = new OrderCreatedEvent();
-        cloudEvent.setOrderId(order.getId().toHexString());
+        cloudEvent.setOrderId(order.getId().toString());
 
         outboxRepository.save(
             OrderOutboxEvent.builder()

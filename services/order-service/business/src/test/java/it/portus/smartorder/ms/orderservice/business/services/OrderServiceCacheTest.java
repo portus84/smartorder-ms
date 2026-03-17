@@ -76,7 +76,9 @@ class OrderServiceCacheTest {
     Order saved = orderService.save(order);
 
     Cache cache = cacheManager.getCache("orders");
-    Order cached = cache.get(saved.getId().toHexString(), Order.class);
+    assertNotNull(cache);
+
+    Order cached = cache.get(saved.getId().toString(), Order.class);
 
     assertNotNull(cached);
     assertEquals(saved.getId(), cached.getId());
@@ -90,13 +92,15 @@ class OrderServiceCacheTest {
     order.setDescription("Updated Description");
     orderService.update(order.getId(), order);
 
-    Cache ordersCache = cacheManager.getCache("orders");
-    Cache listCache = cacheManager.getCache("orders_all");
+    Cache cache = cacheManager.getCache("orders");
+    assertNotNull(cache);
 
-    Order cached = ordersCache.get(order.getId().toHexString(), Order.class);
+    Order cached = cache.get(order.getId().toString(), Order.class);
     assertNotNull(cached);
     assertEquals("Updated Description", cached.getDescription());
 
+    Cache listCache = cacheManager.getCache("orders_all");
+    assertNotNull(listCache);
     assertNull(listCache.get("unpaged"));
   }
 
@@ -106,12 +110,14 @@ class OrderServiceCacheTest {
     order = orderRepository.save(order);
 
     orderService.findById(order.getId());
-    Cache ordersCache = cacheManager.getCache("orders");
-    assertNotNull(ordersCache.get(order.getId().toHexString()));
+    Cache cache = cacheManager.getCache("orders");
+    assertNotNull(cache);
+
+    assertNotNull(cache.get(order.getId().toString()));
 
     orderService.deleteById(order.getId());
 
-    assertNull(ordersCache.get(order.getId().toHexString()));
+    assertNull(cache.get(order.getId().toString()));
   }
 
   @Test
@@ -121,11 +127,13 @@ class OrderServiceCacheTest {
 
     orderService.findById(order.getId());
 
-    Cache ordersCache = cacheManager.getCache("orders");
-    assertNotNull(ordersCache.get(order.getId().toHexString()));
+    Cache cache = cacheManager.getCache("orders");
+    assertNotNull(cache);
+
+    assertNotNull(cache.get(order.getId().toString()));
 
     orderService.delete(order);
 
-    assertNull(ordersCache.get(order.getId().toHexString()));
+    assertNull(cache.get(order.getId().toString()));
   }
 }

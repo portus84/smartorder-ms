@@ -57,7 +57,7 @@ class AddOrderControllerTest {
                 header()
                     .string(
                         HttpHeaders.LOCATION,
-                        org.hamcrest.Matchers.containsString(mocked.getId().toHexString())))
+                        org.hamcrest.Matchers.containsString(mocked.getId().toString())))
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())
             .andExpect(jsonPath("$.lastModifiedDate").exists())
@@ -72,7 +72,7 @@ class AddOrderControllerTest {
     it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order content = response.getContent();
 
     Assertions.assertNotNull(content);
-    assertEquals(mocked.getId().toHexString(), content.getId());
+    assertEquals(mocked.getId(), content.getId());
     assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
     verify(orderService, times(1)).save(any(Order.class));

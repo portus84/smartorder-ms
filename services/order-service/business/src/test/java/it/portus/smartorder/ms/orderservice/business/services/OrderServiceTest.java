@@ -14,8 +14,7 @@ import it.portus.smartorder.ms.orderservice.business.rules.order.OrderRuleEngine
 import it.portus.smartorder.ms.orderservice.business.services.impl.OrderServiceImpl;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,8 +80,7 @@ class OrderServiceTest {
 
   @Test
   void findById_nonExistingOrder_returnsEmpty() {
-    Optional<Order> result =
-        orderService.findById(new ObjectId(RandomStringUtils.secure().nextNumeric(24)));
+    Optional<Order> result = orderService.findById(UUID.randomUUID());
 
     assertFalse(result.isPresent());
   }

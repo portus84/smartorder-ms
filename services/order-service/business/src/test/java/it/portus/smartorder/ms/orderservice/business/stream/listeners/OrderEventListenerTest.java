@@ -11,8 +11,8 @@ import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderState;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus;
 import it.portus.smartorder.ms.orderservice.business.domain.repositories.OrderOutboxRepository;
+import java.util.UUID;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,8 @@ class OrderEventListenerTest {
 
   @Test
   void onAfterSave_OrderPending_SavesOutboxEvent() throws Exception {
-    ObjectId orderId = new ObjectId();
+    UUID orderId = UUID.randomUUID();
+
     Order order =
         Order.builder()
             .id(orderId)
@@ -46,10 +47,10 @@ class OrderEventListenerTest {
     AfterSaveEvent<Order> event = new AfterSaveEvent<>(order, new Document(), "order");
 
     OrderCreatedEvent cloudEvent = new OrderCreatedEvent();
-    cloudEvent.setOrderId(orderId.toHexString());
+    cloudEvent.setOrderId(orderId.toString());
 
     when(objectMapper.writeValueAsString(cloudEvent))
-        .thenReturn("{\"orderId\":\"" + orderId.toHexString() + "\"}");
+        .thenReturn("{\"orderId\":\"" + orderId + "\"}");
 
     listener.onAfterSave(event);
 
@@ -59,13 +60,14 @@ class OrderEventListenerTest {
     OrderOutboxEvent saved = captor.getValue();
     assertEquals(orderId, saved.getAggregateId());
     assertEquals(OrderCreatedEvent.class.getName(), saved.getEventType());
-    assertEquals("{\"orderId\":\"" + orderId.toHexString() + "\"}", saved.getPayload());
+    assertEquals("{\"orderId\":\"" + orderId + "\"}", saved.getPayload());
     assertEquals(EventStatus.PENDING, saved.getStatus());
   }
 
   @Test
   void onAfterSave_OrderWithEmptyState_DoesNotSaveOutboxEvent() {
-    ObjectId orderId = new ObjectId();
+    UUID orderId = UUID.randomUUID();
+
     Order order =
         Order.builder().id(orderId).state(OrderState.builder().status(null).build()).build();
 

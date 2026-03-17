@@ -14,8 +14,7 @@ import it.portus.smartorder.ms.orderservice.api.v1.openapi.model.UpdateOrderRequ
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Optional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ class UpdateOrderControllerTest {
   void updateOrder_WhenValidOrderProvided_ReturnsUpdatedOrder() throws Exception {
     Order mockedOrder = Instancio.create(Order.class);
 
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
+    when(orderService.update(any(UUID.class), any(Order.class)))
         .thenReturn(Optional.of(mockedOrder));
 
     String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
@@ -52,7 +51,7 @@ class UpdateOrderControllerTest {
     String responseJson =
         mockMvc
             .perform(
-                put(ENDPOINT + "/" + mockedOrder.getId().toHexString())
+                put(ENDPOINT + "/" + mockedOrder.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson))
             .andExpect(status().isOk())
@@ -68,15 +67,15 @@ class UpdateOrderControllerTest {
 
     it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order content = response.getContent();
     Assertions.assertNotNull(content);
-    assertEquals(mockedOrder.getId().toHexString(), content.getId());
+    assertEquals(mockedOrder.getId(), content.getId());
     assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
   void updateOrder_WhenOrderDoesNotExist_ReturnsNotFound() throws Exception {
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
     when(orderService.update(any(), any())).thenReturn(Optional.empty());
 
@@ -94,13 +93,13 @@ class UpdateOrderControllerTest {
                 .andExpect(jsonPath("$.errorMessage").exists())
                 .andExpect(jsonPath("$.detailMessage").exists()));
 
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
   void updateOrder_WhenInvalidRequestBody_ReturnsBadRequest() {
     String invalidRequestJson = "{ invalid json }";
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
     assertDoesNotThrow(
         () ->
@@ -114,9 +113,9 @@ class UpdateOrderControllerTest {
 
   @Test
   void updateOrder_WhenValidationFails_ReturnsUnprocessableEntity() throws Exception {
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
+    when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new IllegalArgumentException("Invalid data"));
 
     String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
@@ -130,14 +129,14 @@ class UpdateOrderControllerTest {
                         .content(requestJson))
                 .andExpect(status().isUnprocessableEntity()));
 
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   @Test
   void updateOrder_WhenDatabaseUnavailable_ReturnsInternalServerError() throws Exception {
-    String randomId = RandomStringUtils.secure().nextNumeric(24);
+    UUID randomId = UUID.randomUUID();
 
-    when(orderService.update(any(ObjectId.class), any(Order.class)))
+    when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new RuntimeException("DB unavailable"));
 
     String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
@@ -154,7 +153,7 @@ class UpdateOrderControllerTest {
                 .andExpect(jsonPath("$.errorMessage").exists())
                 .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
 
-    verify(orderService, times(1)).update(any(ObjectId.class), any(Order.class));
+    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
   }
 
   private UpdateOrderRequest buildUpdateOrderRequest() {

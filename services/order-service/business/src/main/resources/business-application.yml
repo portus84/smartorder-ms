@@ -1,6 +1,7 @@
 spring:
   data:
     mongodb:
+      uuid-representation: standard
       uri: mongodb://mongodb:27017/db-smartorder
   rabbitmq:
     host: rabbitmq

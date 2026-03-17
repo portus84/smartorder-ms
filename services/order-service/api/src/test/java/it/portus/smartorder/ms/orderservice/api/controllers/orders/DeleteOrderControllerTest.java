@@ -12,8 +12,7 @@ import it.portus.smartorder.ms.orderservice.api.v1.openapi.OrdersApiController;
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Optional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,26 +35,25 @@ class DeleteOrderControllerTest {
 
   @Test
   void deleteOrder_WhenOrderExists_ReturnsNoContent() {
-    ObjectId id = new ObjectId(RandomStringUtils.secure().nextNumeric(24));
+    UUID id = UUID.randomUUID();
 
     when(orderService.findById(id)).thenReturn(Optional.of(Instancio.create(Order.class)));
     doNothing().when(orderService).deleteById(id);
 
     assertDoesNotThrow(
-        () ->
-            mockMvc.perform(delete(ENDPOINT, id.toHexString())).andExpect(status().isNoContent()));
+        () -> mockMvc.perform(delete(ENDPOINT, id.toString())).andExpect(status().isNoContent()));
   }
 
   @Test
   void deleteOrder_WhenOrderNotFound_ReturnsNotFound() {
-    ObjectId id = new ObjectId(RandomStringUtils.secure().nextNumeric(24));
+    UUID id = UUID.randomUUID();
 
     when(orderService.findById(id)).thenReturn(Optional.empty());
 
     assertDoesNotThrow(
         () ->
             mockMvc
-                .perform(delete(ENDPOINT, id.toHexString()))
+                .perform(delete(ENDPOINT, id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorCode").exists())
                 .andExpect(jsonPath("$.errorMessage").exists())
@@ -70,25 +68,24 @@ class DeleteOrderControllerTest {
 
   @Test
   void deleteOrder_WhenServiceThrowsIllegalArgument_ReturnsUnprocessableEntity() {
-    when(orderService.findById(any(ObjectId.class)))
+    when(orderService.findById(any(UUID.class)))
         .thenThrow(new IllegalArgumentException("Invalid parameter"));
 
     assertDoesNotThrow(
         () ->
             mockMvc
-                .perform(delete(ENDPOINT, RandomStringUtils.secure().nextNumeric(24)))
+                .perform(delete(ENDPOINT, UUID.randomUUID()))
                 .andExpect(status().isUnprocessableEntity()));
   }
 
   @Test
   void deleteOrder_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(orderService.findById(any(ObjectId.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+    when(orderService.findById(any(UUID.class))).thenThrow(new RuntimeException("DB unavailable"));
 
     assertDoesNotThrow(
         () ->
             mockMvc
-                .perform(delete(ENDPOINT, RandomStringUtils.secure().nextNumeric(24)))
+                .perform(delete(ENDPOINT, UUID.randomUUID()))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errorCode").exists())
                 .andExpect(jsonPath("$.errorMessage").exists())

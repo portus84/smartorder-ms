@@ -9,6 +9,7 @@ import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,14 +87,14 @@ class HateoasOrderHelperTest {
     assertNotNull(content);
     assertEquals(orders.size(), content.size());
 
-    List<String> actualIds =
+    List<UUID> actualIds =
         content.stream()
             .map(EntityModel::getContent)
             .filter(Objects::nonNull)
             .map(Order::getId)
             .toList();
 
-    List<String> expectedIds = orders.stream().map(Order::getId).toList();
+    List<UUID> expectedIds = orders.stream().map(Order::getId).toList();
 
     assertIterableEquals(expectedIds, actualIds);
   }

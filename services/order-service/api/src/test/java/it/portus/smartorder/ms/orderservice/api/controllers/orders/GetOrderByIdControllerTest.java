@@ -14,8 +14,7 @@ import it.portus.smartorder.ms.orderservice.api.v1.openapi.OrdersApiController;
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Optional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.bson.types.ObjectId;
+import java.util.UUID;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -57,14 +56,15 @@ class GetOrderByIdControllerTest {
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
     Assertions.assertNotNull(response.getContent());
-    assertEquals(mocked.getId().toHexString(), response.getContent().getId());
+    assertEquals(mocked.getId(), response.getContent().getId());
 
     verify(orderService, times(1)).findById(mocked.getId());
   }
 
   @Test
   void getOrderById_WhenOrderNotFound_ReturnsNotFound() {
-    ObjectId id = new ObjectId(RandomStringUtils.secure().nextNumeric(24));
+    UUID id = UUID.randomUUID();
+
     when(orderService.findById(id)).thenReturn(Optional.empty());
 
     assertDoesNotThrow(
@@ -85,25 +85,24 @@ class GetOrderByIdControllerTest {
 
   @Test
   void getOrderById_WhenInvalidParameterPassed_ReturnsUnprocessableEntity() {
-    when(orderService.findById(any(ObjectId.class)))
+    when(orderService.findById(any(UUID.class)))
         .thenThrow(new IllegalArgumentException("Invalid parameter"));
 
     assertDoesNotThrow(
         () ->
             mockMvc
-                .perform(get(ENDPOINT, RandomStringUtils.secure().nextNumeric(24)))
+                .perform(get(ENDPOINT, UUID.randomUUID()))
                 .andExpect(status().isUnprocessableEntity()));
   }
 
   @Test
   void getOrderById_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(orderService.findById(any(ObjectId.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+    when(orderService.findById(any(UUID.class))).thenThrow(new RuntimeException("DB unavailable"));
 
     assertDoesNotThrow(
         () ->
             mockMvc
-                .perform(get(ENDPOINT, RandomStringUtils.secure().nextNumeric(24)))
+                .perform(get(ENDPOINT, UUID.randomUUID()))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errorCode").exists())
                 .andExpect(jsonPath("$.errorMessage").exists())
