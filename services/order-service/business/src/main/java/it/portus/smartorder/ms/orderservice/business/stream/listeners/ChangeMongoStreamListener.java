@@ -1,4 +1,4 @@
-package it.portus.smartorder.ms.orderservice.business.stream.publisher;
+package it.portus.smartorder.ms.orderservice.business.stream.listeners;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -6,64 +6,34 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.FullDocument;
-import jakarta.annotation.PreDestroy;
+import it.portus.business.commons.stream.publisher.EventPublisher;
+import it.portus.smartorder.ms.orderservice.business.domain.events.OrderOutboxEvent;
 import java.util.List;
-import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OutboxPublisher {
+public class ChangeMongoStreamListener {
 
   private final MongoTemplate mongoTemplate;
-  private final OutboxPollingPublisher pollingPublisher;
-  private final OutboxSender outboxSender;
+  private final EventPublisher<OrderOutboxEvent> publisher;
 
-  private final ThreadPoolTaskExecutor outboxTaskExecutor;
-
-  private Future<?> changeStreamTask;
-
-  @EventListener(ApplicationReadyEvent.class)
-  public void start() {
-    log.info("OutboxPublisher STARTING after context ready");
-
-    pollingPublisher.pollAndSend();
-
-    if (isChangeStreamSupported()) {
-      log.debug("Mongo Change Stream supported → starting listener");
-      changeStreamTask = outboxTaskExecutor.submit(this::startChangeStreamListener);
-    } else {
-      log.warn("Mongo Change Stream NOT supported → falling back to polling");
-      pollingPublisher.start();
-    }
-  }
-
-  @PreDestroy
-  public void shutdown() {
-    if (changeStreamTask != null) {
-      changeStreamTask.cancel(true);
-    }
-  }
-
-  private void startChangeStreamListener() {
+  public boolean isChangeStreamSupported() {
     try {
-      listenToChangeStream();
+      Document isMaster = mongoTemplate.getDb().runCommand(new Document("isMaster", 1));
+
+      return isMaster.containsKey("setName");
     } catch (Exception e) {
-      if (!Thread.currentThread().isInterrupted()) {
-        log.error("Change Stream listener failed", e);
-      }
+      return false;
     }
   }
 
-  private void listenToChangeStream() {
+  public void listen() {
     MongoCollection<Document> collection =
         mongoTemplate.getCollection(
             mongoTemplate.getCollectionName(
@@ -103,23 +73,13 @@ public class OutboxPublisher {
             }
 
             log.trace("Event id from DB/ChangeStream: {}", outboxEvent.getId());
-            outboxSender.sendAsync(outboxEvent);
+            publisher.publish(outboxEvent);
           });
 
     } catch (Exception e) {
       if (!Thread.currentThread().isInterrupted()) {
         log.error("Change Stream listener failed", e);
       }
-    }
-  }
-
-  private boolean isChangeStreamSupported() {
-    try {
-      Document isMaster = mongoTemplate.getDb().runCommand(new Document("isMaster", 1));
-
-      return isMaster.containsKey("setName");
-    } catch (Exception e) {
-      return false;
     }
   }
 }

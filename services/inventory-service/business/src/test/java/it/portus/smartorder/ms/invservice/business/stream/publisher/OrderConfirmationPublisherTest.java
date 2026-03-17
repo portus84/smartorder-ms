@@ -2,6 +2,7 @@ package it.portus.smartorder.ms.invservice.business.stream.publisher;
 
 import static org.mockito.Mockito.*;
 
+import it.portus.business.commons.stream.publisher.EventPublisher;
 import it.portus.smartorder.events.OrderConfirmedEvent;
 import it.portus.smartorder.events.OrderCreatedEvent;
 import it.portus.smartorder.events.OrderOutOfStockEvent;
@@ -21,22 +22,22 @@ class OrderConfirmationPublisherTest {
   @Mock private StreamBridge streamBridge;
   @Mock private InventoryService inventoryService;
 
-  private OrderConfirmationPublisher orderConfirmationPublisher;
+  private EventPublisher<OrderCreatedEvent> orderConfirmationPublisher;
 
   @BeforeEach
   void setUp() {
-    orderConfirmationPublisher = new OrderConfirmationPublisher(streamBridge, inventoryService);
+    orderConfirmationPublisher = new OrderConfirmationPublisher(inventoryService, streamBridge);
   }
 
   @Test
-  void send_OrderAvailable_SendsOrderConfirmedEvent() {
+  void publish_OrderAvailable_SendsOrderConfirmedEvent() {
     String orderId = "123";
     OrderCreatedEvent event = new OrderCreatedEvent();
     event.setOrderId(orderId);
 
     when(inventoryService.checkAvailability(orderId)).thenReturn(true);
 
-    orderConfirmationPublisher.send(event);
+    orderConfirmationPublisher.publish(event);
 
     ArgumentCaptor<OrderConfirmedEvent> captor = ArgumentCaptor.forClass(OrderConfirmedEvent.class);
     verify(streamBridge).send(eq(BindingNames.PUBLISH_ORDER_CONFIRMED), captor.capture());
@@ -48,14 +49,14 @@ class OrderConfirmationPublisherTest {
   }
 
   @Test
-  void send_OrderNotAvailable_SendsOrderOutOfStockEvent() {
+  void publish_OrderNotAvailable_SendsOrderOutOfStockEvent() {
     String orderId = "456";
     OrderCreatedEvent event = new OrderCreatedEvent();
     event.setOrderId(orderId);
 
     when(inventoryService.checkAvailability(orderId)).thenReturn(false);
 
-    orderConfirmationPublisher.send(event);
+    orderConfirmationPublisher.publish(event);
 
     ArgumentCaptor<OrderOutOfStockEvent> captor =
         ArgumentCaptor.forClass(OrderOutOfStockEvent.class);

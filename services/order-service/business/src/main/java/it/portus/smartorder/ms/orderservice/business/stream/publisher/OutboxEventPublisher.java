@@ -1,6 +1,7 @@
 package it.portus.smartorder.ms.orderservice.business.stream.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.portus.business.commons.stream.publisher.EventPublisher;
 import it.portus.smartorder.ms.orderservice.business.domain.events.EventStatus;
 import it.portus.smartorder.ms.orderservice.business.domain.events.OrderOutboxEvent;
 import it.portus.smartorder.ms.orderservice.business.domain.repositories.OrderOutboxRepository;
@@ -14,19 +15,20 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OutboxSender {
+public class OutboxEventPublisher implements EventPublisher<OrderOutboxEvent> {
 
   private final OrderOutboxRepository outboxRepository;
   private final StreamBridge streamBridge;
   private final ObjectMapper objectMapper;
 
-  private final ExecutorService executor = Executors.newFixedThreadPool(5);
+  private final Executor taskScheduler;
 
-  public void sendAsync(OrderOutboxEvent outboxEvent) {
-    CompletableFuture.runAsync(() -> send(outboxEvent), executor);
+  @Override
+  public void publish(OrderOutboxEvent outboxEvent) {
+    CompletableFuture.runAsync(() -> publishEvent(outboxEvent), taskScheduler);
   }
 
-  private void send(OrderOutboxEvent event) {
+  private void publishEvent(OrderOutboxEvent event) {
     try {
       if (!outboxRepository.existsById(event.getId())) {
         log.error("Outbox event {} does not exist in DB, skipping", event.getId());
@@ -43,7 +45,7 @@ public class OutboxSender {
 
       outboxRepository.save(event);
     } catch (Exception e) {
-      log.error("Error sending outbox event {}", event.getId(), e);
+      log.error("Error publishing outbox event {}", event.getId(), e);
       event.setStatus(EventStatus.FAILED);
       outboxRepository.save(event);
     }

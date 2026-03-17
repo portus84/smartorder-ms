@@ -1,33 +1,31 @@
-package it.portus.smartorder.ms.orderservice.business.stream.config;
+package it.portus.smartorder.ms.orderservice.business.stream.adapter.impl;
 
 import it.portus.smartorder.events.OrderConfirmedEvent;
 import it.portus.smartorder.events.OrderOutOfStockEvent;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderState;
 import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
+import it.portus.smartorder.ms.orderservice.business.stream.adapter.OrderEventAdapter;
 import java.util.UUID;
-import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Configuration
+@Component
 @RequiredArgsConstructor
-public class OrderAvailabilityListener {
+public class OrderEventAdapterImpl implements OrderEventAdapter {
 
   private final OrderService orderService;
 
-  @Bean
-  public Consumer<OrderConfirmedEvent> orderConfirmedConsumer() {
-    return event -> handleOrderEvent(event.getOrderId(), OrderStatus.CONFIRMED, null);
+  @Override
+  public void onOrderConfirmed(OrderConfirmedEvent event) {
+    handleOrderEvent(event.getOrderId(), OrderStatus.CONFIRMED, null);
   }
 
-  @Bean
-  public Consumer<OrderOutOfStockEvent> orderOutOfStockConsumer() {
-    return event ->
-        handleOrderEvent(event.getOrderId(), OrderStatus.OUT_OF_STOCK, event.getReason());
+  @Override
+  public void onOrderOutOfStock(OrderOutOfStockEvent event) {
+    handleOrderEvent(event.getOrderId(), OrderStatus.OUT_OF_STOCK, event.getReason());
   }
 
   private void handleOrderEvent(String orderId, OrderStatus status, String reason) {

@@ -1,5 +1,6 @@
 package it.portus.smartorder.ms.invservice.business.stream.publisher;
 
+import it.portus.business.commons.stream.publisher.EventPublisher;
 import it.portus.smartorder.events.OrderConfirmedEvent;
 import it.portus.smartorder.events.OrderCreatedEvent;
 import it.portus.smartorder.events.OrderOutOfStockEvent;
@@ -13,22 +14,23 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderConfirmationPublisher {
-
-  private final StreamBridge streamBridge;
+public class OrderConfirmationPublisher implements EventPublisher<OrderCreatedEvent> {
 
   private final InventoryService inventoryService;
 
-  public void send(OrderCreatedEvent event) {
+  private final StreamBridge streamBridge;
+
+  @Override
+  public void publish(OrderCreatedEvent event) {
     boolean available = checkInventory(event);
 
     String orderId = event.getOrderId();
 
     if (available) {
-      log.debug("Order {} is available, sending confirmation", orderId);
+      log.debug("Order {} is available, publishing confirmation", orderId);
       sendConfirmation(orderId, true, null);
     } else {
-      log.warn("Order {} is not available, sending rejection", orderId);
+      log.warn("Order {} is not available, publishing rejection", orderId);
       sendConfirmation(orderId, false, "Insufficient stock");
     }
   }

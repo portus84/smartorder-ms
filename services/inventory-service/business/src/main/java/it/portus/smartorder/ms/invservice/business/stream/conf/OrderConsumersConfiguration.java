@@ -1,7 +1,7 @@
 package it.portus.smartorder.ms.invservice.business.stream.conf;
 
+import it.portus.business.commons.stream.publisher.EventPublisher;
 import it.portus.smartorder.events.OrderCreatedEvent;
-import it.portus.smartorder.ms.invservice.business.stream.publisher.OrderConfirmationPublisher;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class OrderConsumersConfiguration {
 
-  private final OrderConfirmationPublisher orderConfirmationPublisher;
+  private final EventPublisher<OrderCreatedEvent> orderConfirmationPublisher;
 
   @Bean
   public Consumer<OrderCreatedEvent> orderCreatedConsumer() {
@@ -21,7 +21,7 @@ public class OrderConsumersConfiguration {
       String orderId = event.getOrderId();
       log.info("Received order {} in inventory service", orderId);
 
-      orderConfirmationPublisher.send(event);
+      orderConfirmationPublisher.publish(event);
     };
   }
 }
