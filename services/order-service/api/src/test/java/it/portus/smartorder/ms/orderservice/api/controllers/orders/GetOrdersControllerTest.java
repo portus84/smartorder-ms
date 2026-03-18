@@ -2,18 +2,16 @@ package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.querydsl.core.types.Predicate;
 import it.portus.ms.commons.mappers.PageToPagedModelMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.orderservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.orderservice.api.controller.impl.OrdersApiDelegateImpl;
 import it.portus.smartorder.ms.orderservice.api.v1.openapi.OrdersApiController;
@@ -23,6 +21,8 @@ import it.portus.smartorder.ms.orderservice.business.domain.model.OrderStatus;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.Disabled;
@@ -37,25 +37,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
 @MockitoBean(types = {CacheManager.class})
-class GetOrdersControllerTest {
+class GetOrdersControllerTest extends AbstractControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private OrderService orderService;
 
-  @Autowired private ObjectMapper objectMapper;
   @Autowired private PageToPagedModelMapper pageToPagedModelMapper;
 
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
+
   @Test
-  void getOrders_WhenOrdersExist_ReturnsAllOrders() throws Exception {
+  @SneakyThrows
+  void getOrders_WhenOrdersExist_ReturnsAllOrders() {
     List<Order> content = getMockedOrders();
     int contentSize = content.size();
 
@@ -63,8 +66,7 @@ class GetOrdersControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(page);
 
     String responseJson =
-        mockMvc
-            .perform(get(ENDPOINT))
+        get()
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.orders", hasSize(contentSize)))
             .andExpect(jsonPath("$.page.totalElements", equalTo(contentSize)))
@@ -81,13 +83,14 @@ class GetOrdersControllerTest {
                 page, it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order.class);
 
     assertEquals(expectedPage.getMetadata(), responsePage.getMetadata());
-    assertPageEquals(expectedPage, responsePage);
+    assertPageEquals(expectedPage.getContent(), responsePage.getContent());
 
-    verify(orderService, times(1)).findAll(any(Predicate.class), any(Pageable.class));
+    verify(orderService).findAll(any(Predicate.class), any(Pageable.class));
   }
 
   @Test
-  void getOrders_WhenQueryParametersProvided_ReturnsSortedPagedOrders() throws Exception {
+  @SneakyThrows
+  void getOrders_WhenQueryParametersProvided_ReturnsSortedPagedOrders() {
     List<Order> content = getMockedOrders();
     int contentSize = content.size();
 
@@ -97,29 +100,16 @@ class GetOrdersControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class)))
         .thenReturn(new PageImpl<>(content, pageRequest, contentSize));
 
-    MockHttpServletRequestBuilder requestBuilder =
-        get(ENDPOINT)
-            .param("page", String.valueOf(pageRequest.getPageNumber()))
-            .param("size", String.valueOf(pageRequest.getPageSize()));
-
-    pageRequest
-        .getSort()
-        .forEach(
-            o -> {
-              String sortParam = o.getProperty() + "," + o.getDirection().name().toLowerCase();
-              requestBuilder.param("sort", sortParam);
-            });
-
-    mockMvc
-        .perform(requestBuilder)
+    getWithPageRequest(pageRequest)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.orders", hasSize(contentSize)));
 
-    verify(orderService, times(1)).findAll(any(Predicate.class), any(Pageable.class));
+    verify(orderService).findAll(any(Predicate.class), any(Pageable.class));
   }
 
   @Test
-  void getOrders_WhenStatusQueryParamProvided_FiltersByStatus() throws Exception {
+  @SneakyThrows
+  void getOrders_WhenStatusQueryParamProvided_FiltersByStatus() {
     OrderStatus statusToFilter = OrderStatus.DELIVERED;
 
     List<Order> content = getMockedOrders(statusToFilter);
@@ -130,14 +120,12 @@ class GetOrdersControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(page);
 
     String responseJson =
-        mockMvc
-            .perform(
-                get(ENDPOINT)
-                    .param(
-                        "status",
-                        it.portus.smartorder.ms.orderservice.api.v1.openapi.model.OrderStatus
-                            .valueOf(statusToFilter.name())
-                            .getValue()))
+        getWithParams(
+                Map.of(
+                    "status",
+                    it.portus.smartorder.ms.orderservice.api.v1.openapi.model.OrderStatus.valueOf(
+                            statusToFilter.name())
+                        .getValue()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.orders", hasSize(contentSize)))
             .andExpect(jsonPath("$.page.totalElements", equalTo(contentSize)))
@@ -154,59 +142,46 @@ class GetOrdersControllerTest {
                 page, it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order.class);
 
     assertEquals(expectedPage.getMetadata(), responsePage.getMetadata());
-    assertPageEquals(expectedPage, responsePage);
+    assertPageEquals(expectedPage.getContent(), responsePage.getContent());
 
-    verify(orderService, times(1)).findAll(any(Predicate.class), any(Pageable.class));
+    verify(orderService).findAll(any(Predicate.class), any(Pageable.class));
   }
 
   @Test
+  @SneakyThrows
   void getOrders_WhenPageNumberIsNegative_ReturnsBadRequest() {
-    assertDoesNotThrow(
-        () ->
-            mockMvc.perform(get(ENDPOINT).param("page", "-1")).andExpect(status().isBadRequest()));
+    getWithParams(Map.of("page", "-1")).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
+  @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void getOrders_WhenUnauthorized_ReturnsUnauthorized() {
-    assertDoesNotThrow(() -> mockMvc.perform(get(ENDPOINT)).andExpect(status().isUnauthorized()));
+    get().andExpect(status().isUnauthorized());
   }
 
   @Test
+  @SneakyThrows
   void getOrders_WhenInvalidParameterPassed_ReturnsUnprocessableEntity() {
+    String message = "Invalid parameter";
     when(orderService.findAll(any(Predicate.class), any(Pageable.class)))
-        .thenThrow(new IllegalArgumentException("Invalid parameter"));
+        .thenThrow(new IllegalArgumentException(message));
 
-    assertDoesNotThrow(
-        () -> mockMvc.perform(get(ENDPOINT)).andExpect(status().isUnprocessableEntity()));
+    get().andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
+  @SneakyThrows
   void getOrders_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
+    String message = "DB unavailable";
     when(orderService.findAll(any(Predicate.class), any(Pageable.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+        .thenThrow(new RuntimeException(message));
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(get(ENDPOINT))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
+    get().andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
-  private void assertPageEquals(
-      PagedModel<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
-          expectedPage,
-      PagedModel<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
-          responsePage) {
-
-    Collection<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
-        expected = expectedPage.getContent();
-    Collection<EntityModel<it.portus.smartorder.ms.orderservice.api.v1.openapi.model.Order>>
-        actual = responsePage.getContent();
-
+  private <T> void assertPageEquals(
+      Collection<EntityModel<T>> expected, Collection<EntityModel<T>> actual) {
     JsonNode expectedNode = objectMapper.valueToTree(expected);
     JsonNode actualNode = objectMapper.valueToTree(actual);
 

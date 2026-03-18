@@ -1,11 +1,10 @@
 package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.invservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.invservice.api.controller.impl.InventoriesApiDelegateImpl;
 import it.portus.smartorder.ms.invservice.api.v1.openapi.InventoriesApiController;
@@ -13,81 +12,68 @@ import it.portus.smartorder.ms.invservice.business.domain.model.Inventory;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = InventoriesApiController.class)
 @Import({ControllerTestConfig.class, InventoriesApiDelegateImpl.class})
-class DeleteInventoryControllerTest {
+class DeleteInventoryControllerTest extends AbstractControllerTest {
 
   private static final String ENDPOINT = "/api/v1/inventories/{id}";
 
-  @Autowired private MockMvc mockMvc;
-
   @MockitoBean private InventoryService inventoryService;
 
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
+
   @Test
+  @SneakyThrows
   void deleteInventory_WhenInventoryExists_ReturnsNoContent() {
     UUID id = UUID.randomUUID();
-
     when(inventoryService.findById(id)).thenReturn(Optional.of(Instancio.create(Inventory.class)));
     doNothing().when(inventoryService).deleteById(id);
 
-    assertDoesNotThrow(
-        () -> mockMvc.perform(delete(ENDPOINT, id)).andExpect(status().isNoContent()));
+    delete(id).andExpect(status().isNoContent());
   }
 
   @Test
+  @SneakyThrows
   void deleteInventory_WhenInventoryNotFound_ReturnsNotFound() {
     UUID id = UUID.randomUUID();
-
     when(inventoryService.findById(id)).thenReturn(Optional.empty());
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(delete(ENDPOINT, id))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").exists()));
+    delete(id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
   @Test
+  @SneakyThrows
   void deleteInventory_WhenInvalidIdPassed_ReturnsBadRequest() {
-    assertDoesNotThrow(
-        () -> mockMvc.perform(delete(ENDPOINT, "bad-id")).andExpect(status().isBadRequest()));
+    delete("bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
+  @SneakyThrows
   void deleteInventory_WhenServiceThrowsIllegalArgument_ReturnsUnprocessableEntity() {
+    String message = "Invalid parameter";
     when(inventoryService.findById(any(UUID.class)))
-        .thenThrow(new IllegalArgumentException("Invalid parameter"));
+        .thenThrow(new IllegalArgumentException(message));
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(delete(ENDPOINT, UUID.randomUUID()))
-                .andExpect(status().isUnprocessableEntity()));
+    delete(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
+  @SneakyThrows
   void deleteInventory_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(inventoryService.findById(any(UUID.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+    String message = "DB unavailable";
+    when(inventoryService.findById(any(UUID.class))).thenThrow(new RuntimeException(message));
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(delete(ENDPOINT, UUID.randomUUID()))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
+    delete(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

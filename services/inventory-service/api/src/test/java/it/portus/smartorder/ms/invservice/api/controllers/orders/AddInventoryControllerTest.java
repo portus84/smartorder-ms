@@ -2,53 +2,52 @@ package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.invservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.invservice.api.controller.impl.InventoriesApiDelegateImpl;
 import it.portus.smartorder.ms.invservice.api.v1.openapi.InventoriesApiController;
 import it.portus.smartorder.ms.invservice.api.v1.openapi.model.CreateInventoryRequest;
 import it.portus.smartorder.ms.invservice.business.domain.model.Inventory;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = InventoriesApiController.class)
 @Import({ControllerTestConfig.class, InventoriesApiDelegateImpl.class})
-class AddInventoryControllerTest {
+class AddInventoryControllerTest extends AbstractControllerTest {
 
   private static final String ENDPOINT = "/api/v1/inventories";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private InventoryService inventoryService;
 
-  @Autowired private ObjectMapper objectMapper;
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
 
   @Test
-  void addInventory_WhenValidInventoryProvided_ReturnsCreatedInventory() throws Exception {
+  @SneakyThrows
+  void addInventory_WhenValidInventoryProvided_ReturnsCreatedInventory() {
     Inventory mocked = Instancio.create(Inventory.class);
 
     when(inventoryService.save(any(Inventory.class))).thenReturn(mocked);
 
-    String requestJson = objectMapper.writeValueAsString(buildCreateInventoryRequest());
-
     String responseJson =
-        mockMvc
-            .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestJson))
+        post(Instancio.create(CreateInventoryRequest.class))
             .andExpect(status().isCreated())
             .andExpect(header().exists(HttpHeaders.LOCATION))
             .andExpect(
@@ -66,91 +65,45 @@ class AddInventoryControllerTest {
     EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory> response =
         objectMapper.readValue(responseJson, new TypeReference<>() {});
 
-    Assertions.assertNotNull(response.getContent());
+    assertNotNull(response.getContent());
     assertEquals(mocked.getId(), response.getContent().getId());
     assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
-    verify(inventoryService, times(1)).save(any(Inventory.class));
+    verify(inventoryService).save(any(Inventory.class));
+  }
+
+  @ParameterizedTest(name = "{0} => BadRequest")
+  @ValueSource(strings = {"{ invalid json }", "{ }"})
+  @SneakyThrows
+  void addInventory_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
+    post(body).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
-  void addInventory_WhenInvalidRequestBody_ReturnsBadRequest() {
-    String invalidRequestJson = "{ invalid json }";
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    post(ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidRequestJson))
-                .andExpect(status().isBadRequest()));
-  }
-
-  @Test
-  void addInventory_WhenRequiredFieldMissing_ReturnsBadRequest() {
-    String requestWithMissingField = "{}";
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    post(ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestWithMissingField))
-                .andExpect(status().isBadRequest()));
-  }
-
-  @Test
+  @SneakyThrows
   void addInventory_WhenInvalidParameterPassed_ReturnsUnprocessableEntity() {
+    String message = "Invalid data";
     when(inventoryService.save(any(Inventory.class)))
-        .thenThrow(new IllegalArgumentException("Invalid data"));
+        .thenThrow(new IllegalArgumentException(message));
 
-    CreateInventoryRequest createRequest = buildCreateInventoryRequest();
-
-    assertDoesNotThrow(
-        () -> {
-          String requestJson = objectMapper.writeValueAsString(createRequest);
-          mockMvc
-              .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestJson))
-              .andExpect(status().isUnprocessableEntity());
-        });
-
-    verify(inventoryService, times(1)).save(any(Inventory.class));
+    post(Instancio.create(CreateInventoryRequest.class))
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
+  @SneakyThrows
   void addInventory_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(inventoryService.save(any(Inventory.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+    String message = "DB unavailable";
+    when(inventoryService.save(any(Inventory.class))).thenThrow(new RuntimeException(message));
 
-    CreateInventoryRequest createRequest = buildCreateInventoryRequest();
-
-    assertDoesNotThrow(
-        () -> {
-          String requestJson = objectMapper.writeValueAsString(createRequest);
-          mockMvc
-              .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestJson))
-              .andExpect(status().isInternalServerError())
-              .andExpect(jsonPath("$.errorCode").exists())
-              .andExpect(jsonPath("$.errorMessage").exists())
-              .andExpect(jsonPath("$.detailMessage").value("DB unavailable"));
-        });
-
-    verify(inventoryService, times(1)).save(any(Inventory.class));
+    post(Instancio.create(CreateInventoryRequest.class))
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   @Test
   @Disabled("Authorization not implemented yet")
+  @SneakyThrows
   void addInventory_WhenUnauthorized_ReturnsUnauthorized() {
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isUnauthorized()));
-  }
-
-  private CreateInventoryRequest buildCreateInventoryRequest() {
-    return Instancio.create(CreateInventoryRequest.class);
+    post("{}").andExpect(status().isUnauthorized());
   }
 }

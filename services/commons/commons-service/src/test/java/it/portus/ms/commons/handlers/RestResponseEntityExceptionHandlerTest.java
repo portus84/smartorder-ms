@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 
 import it.portus.ms.commons.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,6 +83,28 @@ class RestResponseEntityExceptionHandlerTest {
 
     ResponseEntity<Object> response =
         exceptionHandler.handleConstraintViolationException(ex, mock(WebRequest.class));
+
+    assertNotNull(response);
+    assertEquals(expectedBody, response.getBody());
+  }
+
+  @Test
+  void handleMethodArgumentTypeMismatchException_WhenThrown_ReturnsBadRequestResponse() {
+    HttpStatus expectedStatus = HttpStatus.BAD_REQUEST;
+
+    MethodArgumentTypeMismatchException ex =
+        new MethodArgumentTypeMismatchException(
+            "invalid-uuid", UUID.class, "id", mock(MethodParameter.class), null);
+
+    ErrorResponse expectedBody =
+        ErrorResponse.builder()
+            .errorCode(expectedStatus.name())
+            .errorMessage(expectedStatus.getReasonPhrase())
+            .detailMessage(ex.getLocalizedMessage())
+            .build();
+
+    ResponseEntity<Object> response =
+        exceptionHandler.handleMethodArgumentTypeMismatchException(ex, mock(WebRequest.class));
 
     assertNotNull(response);
     assertEquals(expectedBody, response.getBody());

@@ -2,11 +2,10 @@ package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.invservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.invservice.api.controller.impl.InventoriesApiDelegateImpl;
 import it.portus.smartorder.ms.invservice.api.v1.openapi.InventoriesApiController;
@@ -15,43 +14,42 @@ import it.portus.smartorder.ms.invservice.business.domain.model.Inventory;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = InventoriesApiController.class)
 @Import({ControllerTestConfig.class, InventoriesApiDelegateImpl.class})
-class UpdateInventoryControllerTest {
+class UpdateInventoryControllerTest extends AbstractControllerTest {
 
-  private static final String ENDPOINT = "/api/v1/inventories";
+  private static final String ENDPOINT = "/api/v1/inventories/{id}";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private InventoryService inventoryService;
-  @Autowired private ObjectMapper objectMapper;
+
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
 
   @Test
-  void updateInventory_WhenValidInventoryProvided_ReturnsUpdatedInventory() throws Exception {
+  @SneakyThrows
+  void updateInventory_WhenValidInventoryProvided_ReturnsUpdatedInventory() {
     Inventory mocked = Instancio.create(Inventory.class);
 
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenReturn(Optional.of(mocked));
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateInventoryRequest());
-
     String responseJson =
-        mockMvc
-            .perform(
-                put(ENDPOINT + "/" + mocked.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson))
+        put(Instancio.create(UpdateInventoryRequest.class), mocked.getId())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())
@@ -69,93 +67,45 @@ class UpdateInventoryControllerTest {
     assertEquals(mocked.getId(), content.getId());
     assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
-    verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));
+    verify(inventoryService).update(any(UUID.class), any(Inventory.class));
   }
 
   @Test
-  void updateInventory_WhenInventoryDoesNotExist_ReturnsNotFound() throws Exception {
-    UUID randomId = UUID.randomUUID();
-
-    when(inventoryService.update(any(), any())).thenReturn(Optional.empty());
-
-    String requestJson = objectMapper.writeValueAsString(buildUpdateInventoryRequest());
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").exists()));
-
-    verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));
-  }
-
-  @Test
-  void updateInventory_WhenInvalidRequestBody_ReturnsBadRequest() {
-    String invalidRequestJson = "{ invalid json }";
-    UUID randomId = UUID.randomUUID();
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidRequestJson))
-                .andExpect(status().isBadRequest()));
-  }
-
-  @Test
-  void updateInventory_WhenValidationFails_ReturnsUnprocessableEntity() throws Exception {
-    UUID randomId = UUID.randomUUID();
-
+  @SneakyThrows
+  void updateInventory_WhenInventoryDoesNotExist_ReturnsNotFound() {
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
-        .thenThrow(new IllegalArgumentException("Invalid data"));
+        .thenReturn(Optional.empty());
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateInventoryRequest());
+    put(Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.NOT_FOUND));
+  }
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isUnprocessableEntity()));
-
-    verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));
+  @ParameterizedTest(name = "{0} => BadRequest")
+  @ValueSource(strings = {"{ invalid json }", "{ }"})
+  @SneakyThrows
+  void updateInventory_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
+    put(body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
-  void updateInventory_WhenDatabaseUnavailable_ReturnsInternalServerError() throws Exception {
-    UUID randomId = UUID.randomUUID();
-
+  @SneakyThrows
+  void updateInventory_WhenValidationFails_ReturnsUnprocessableEntity() {
+    String message = "Invalid data";
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+        .thenThrow(new IllegalArgumentException(message));
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateInventoryRequest());
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
-
-    verify(inventoryService, times(1)).update(any(UUID.class), any(Inventory.class));
+    put(Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
-  private UpdateInventoryRequest buildUpdateInventoryRequest() {
-    return Instancio.create(UpdateInventoryRequest.class);
+  @Test
+  @SneakyThrows
+  void updateInventory_WhenDatabaseUnavailable_ReturnsInternalServerError() {
+    String message = "DB unavailable";
+    when(inventoryService.update(any(UUID.class), any(Inventory.class)))
+        .thenThrow(new RuntimeException(message));
+
+    put(Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

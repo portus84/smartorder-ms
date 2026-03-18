@@ -1,13 +1,11 @@
 package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.orderservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.orderservice.api.controller.impl.OrdersApiDelegateImpl;
 import it.portus.smartorder.ms.orderservice.api.v1.openapi.OrdersApiController;
@@ -15,38 +13,40 @@ import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
 @MockitoBean(types = {CacheManager.class})
-class GetOrderByIdControllerTest {
+class GetOrderByIdControllerTest extends AbstractControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders/{id}";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private OrderService orderService;
 
-  @Autowired private ObjectMapper objectMapper;
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
 
   @Test
-  void getOrderById_WhenOrderExists_ReturnsOrder() throws Exception {
+  @SneakyThrows
+  void getOrderById_WhenOrderExists_ReturnsOrder() {
     Order mocked = Instancio.create(Order.class);
     when(orderService.findById(mocked.getId())).thenReturn(Optional.of(mocked));
 
     String responseJson =
-        mockMvc
-            .perform(get(ENDPOINT, mocked.getId()))
+        get(mocked.getId())
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -58,61 +58,46 @@ class GetOrderByIdControllerTest {
     Assertions.assertNotNull(response.getContent());
     assertEquals(mocked.getId(), response.getContent().getId());
 
-    verify(orderService, times(1)).findById(mocked.getId());
+    verify(orderService).findById(mocked.getId());
   }
 
   @Test
+  @SneakyThrows
   void getOrderById_WhenOrderNotFound_ReturnsNotFound() {
     UUID id = UUID.randomUUID();
-
     when(orderService.findById(id)).thenReturn(Optional.empty());
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(get(ENDPOINT, id))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").exists()));
+    get(id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
   @Test
+  @SneakyThrows
   void getOrderById_WhenInvalidParameterPassed_ReturnsBadRequest() {
-    assertDoesNotThrow(
-        () -> mockMvc.perform(get(ENDPOINT, "bad-id")).andExpect(status().isBadRequest()));
+    get("bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
+  @SneakyThrows
   void getOrderById_WhenInvalidParameterPassed_ReturnsUnprocessableEntity() {
-    when(orderService.findById(any(UUID.class)))
-        .thenThrow(new IllegalArgumentException("Invalid parameter"));
+    String message = "Invalid parameter";
+    when(orderService.findById(any(UUID.class))).thenThrow(new IllegalArgumentException(message));
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(get(ENDPOINT, UUID.randomUUID()))
-                .andExpect(status().isUnprocessableEntity()));
+    get(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
+  @SneakyThrows
   void getOrderById_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(orderService.findById(any(UUID.class))).thenThrow(new RuntimeException("DB unavailable"));
+    String message = "DB unavailable";
+    when(orderService.findById(any(UUID.class))).thenThrow(new RuntimeException(message));
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(get(ENDPOINT, UUID.randomUUID()))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
+    get(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   @Test
+  @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void getOrderById_WhenUnauthorized_ReturnsUnauthorized() {
-    assertDoesNotThrow(
-        () -> mockMvc.perform(get(ENDPOINT, "anyId")).andExpect(status().isUnauthorized()));
+    get("anyId").andExpect(status().isUnauthorized());
   }
 }

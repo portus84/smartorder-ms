@@ -16,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -35,6 +36,13 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ExceptionHandler(ConstraintViolationException.class)
   protected ResponseEntity<Object> handleConstraintViolationException(
       ConstraintViolationException ex, WebRequest request) {
+    return handleException(ex, request, HttpStatus.BAD_REQUEST, null);
+  }
+
+  @Nullable
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  protected ResponseEntity<Object> handleMethodArgumentTypeMismatchException(
+      MethodArgumentTypeMismatchException ex, WebRequest request) {
     return handleException(ex, request, HttpStatus.BAD_REQUEST, null);
   }
 

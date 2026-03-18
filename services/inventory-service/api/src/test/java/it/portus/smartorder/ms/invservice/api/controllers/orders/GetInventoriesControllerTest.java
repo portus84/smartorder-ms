@@ -2,17 +2,15 @@ package it.portus.smartorder.ms.invservice.api.controllers.orders;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import it.portus.ms.commons.mappers.PageToPagedModelMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.invservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.invservice.api.controller.impl.InventoriesApiDelegateImpl;
 import it.portus.smartorder.ms.invservice.api.v1.openapi.InventoriesApiController;
@@ -20,6 +18,8 @@ import it.portus.smartorder.ms.invservice.business.domain.model.Inventory;
 import it.portus.smartorder.ms.invservice.business.services.InventoryService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -32,24 +32,27 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(controllers = InventoriesApiController.class)
 @Import({ControllerTestConfig.class, InventoriesApiDelegateImpl.class})
-class GetInventoriesControllerTest {
+class GetInventoriesControllerTest extends AbstractControllerTest {
 
   private static final String ENDPOINT = "/api/v1/inventories";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private InventoryService inventoryService;
 
-  @Autowired private ObjectMapper objectMapper;
   @Autowired private PageToPagedModelMapper pageToPagedModelMapper;
 
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
+
   @Test
-  void getInventories_WhenInventoriesExist_ReturnsAllInventories() throws Exception {
+  @SneakyThrows
+  void getInventories_WhenInventoriesExist_ReturnsAllInventories() {
     List<Inventory> content = getMockedInventories();
     int contentSize = content.size();
 
@@ -57,8 +60,7 @@ class GetInventoriesControllerTest {
     when(inventoryService.findAll(any(Pageable.class))).thenReturn(page);
 
     String responseJson =
-        mockMvc
-            .perform(get(ENDPOINT))
+        get()
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.inventories", hasSize(contentSize)))
             .andExpect(jsonPath("$.page.totalElements", equalTo(contentSize)))
@@ -75,13 +77,14 @@ class GetInventoriesControllerTest {
                 page, it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory.class);
 
     assertEquals(expectedPage.getMetadata(), responsePage.getMetadata());
-    assertPageEquals(expectedPage, responsePage);
+    assertPageEquals(expectedPage.getContent(), responsePage.getContent());
 
-    verify(inventoryService, times(1)).findAll(any(Pageable.class));
+    verify(inventoryService).findAll(any(Pageable.class));
   }
 
   @Test
-  void getInventories_WhenQueryParametersProvided_ReturnsSortedPagedInventories() throws Exception {
+  @SneakyThrows
+  void getInventories_WhenQueryParametersProvided_ReturnsSortedPagedInventories() {
     List<Inventory> content = getMockedInventories();
     int contentSize = content.size();
 
@@ -91,75 +94,47 @@ class GetInventoriesControllerTest {
     when(inventoryService.findAll(any(Pageable.class)))
         .thenReturn(new PageImpl<>(content, pageRequest, contentSize));
 
-    MockHttpServletRequestBuilder requestBuilder =
-        get(ENDPOINT)
-            .param("page", String.valueOf(pageRequest.getPageNumber()))
-            .param("size", String.valueOf(pageRequest.getPageSize()));
-
-    pageRequest
-        .getSort()
-        .forEach(
-            o -> {
-              String sortParam = o.getProperty() + "," + o.getDirection().name().toLowerCase();
-              requestBuilder.param("sort", sortParam);
-            });
-
-    mockMvc
-        .perform(requestBuilder)
+    getWithPageRequest(pageRequest)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.inventories", hasSize(contentSize)));
 
-    verify(inventoryService, times(1)).findAll(any(Pageable.class));
+    verify(inventoryService).findAll(any(Pageable.class));
   }
 
   @Test
+  @SneakyThrows
   void getInventories_WhenPageNumberIsNegative_ReturnsBadRequest() {
-    assertDoesNotThrow(
-        () ->
-            mockMvc.perform(get(ENDPOINT).param("page", "-1")).andExpect(status().isBadRequest()));
+    getWithParams(Map.of("page", "-1")).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
+  @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void getInventories_WhenUnauthorized_ReturnsUnauthorized() {
-    assertDoesNotThrow(() -> mockMvc.perform(get(ENDPOINT)).andExpect(status().isUnauthorized()));
+    get().andExpect(status().isUnauthorized());
   }
 
   @Test
+  @SneakyThrows
   void getInventories_WhenInvalidParameterPassed_ReturnsUnprocessableEntity() {
+    String message = "Invalid parameter";
     when(inventoryService.findAll(any(Pageable.class)))
-        .thenThrow(new IllegalArgumentException("Invalid parameter"));
+        .thenThrow(new IllegalArgumentException(message));
 
-    assertDoesNotThrow(
-        () -> mockMvc.perform(get(ENDPOINT)).andExpect(status().isUnprocessableEntity()));
+    get().andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
+  @SneakyThrows
   void getInventories_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(inventoryService.findAll(any(Pageable.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+    String message = "DB unavailable";
+    when(inventoryService.findAll(any(Pageable.class))).thenThrow(new RuntimeException(message));
 
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(get(ENDPOINT))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
+    get().andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
-  private void assertPageEquals(
-      PagedModel<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
-          expectedPage,
-      PagedModel<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
-          responsePage) {
-
-    Collection<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
-        expected = expectedPage.getContent();
-    Collection<EntityModel<it.portus.smartorder.ms.invservice.api.v1.openapi.model.Inventory>>
-        actual = responsePage.getContent();
-
+  private <T> void assertPageEquals(
+      Collection<EntityModel<T>> expected, Collection<EntityModel<T>> actual) {
     JsonNode expectedNode = objectMapper.valueToTree(expected);
     JsonNode actualNode = objectMapper.valueToTree(actual);
 

@@ -2,11 +2,10 @@ package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.orderservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.orderservice.api.controller.impl.OrdersApiDelegateImpl;
 import it.portus.smartorder.ms.orderservice.api.v1.openapi.OrdersApiController;
@@ -15,45 +14,44 @@ import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
 @MockitoBean(types = {CacheManager.class})
-class UpdateOrderControllerTest {
+class UpdateOrderControllerTest extends AbstractControllerTest {
 
-  private static final String ENDPOINT = "/api/v1/orders";
+  private static final String ENDPOINT = "/api/v1/orders/{id}";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private OrderService orderService;
-  @Autowired private ObjectMapper objectMapper;
+
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
 
   @Test
-  void updateOrder_WhenValidOrderProvided_ReturnsUpdatedOrder() throws Exception {
+  @SneakyThrows
+  void updateOrder_WhenValidOrderProvided_ReturnsUpdatedOrder() {
     Order mockedOrder = Instancio.create(Order.class);
 
     when(orderService.update(any(UUID.class), any(Order.class)))
         .thenReturn(Optional.of(mockedOrder));
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
-
     String responseJson =
-        mockMvc
-            .perform(
-                put(ENDPOINT + "/" + mockedOrder.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson))
+        put(Instancio.create(UpdateOrderRequest.class), mockedOrder.getId())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())
@@ -70,93 +68,44 @@ class UpdateOrderControllerTest {
     assertEquals(mockedOrder.getId(), content.getId());
     assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
-    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
+    verify(orderService).update(any(UUID.class), any(Order.class));
   }
 
   @Test
-  void updateOrder_WhenOrderDoesNotExist_ReturnsNotFound() throws Exception {
-    UUID randomId = UUID.randomUUID();
+  @SneakyThrows
+  void updateOrder_WhenOrderDoesNotExist_ReturnsNotFound() {
+    when(orderService.update(any(UUID.class), any(Order.class))).thenReturn(Optional.empty());
 
-    when(orderService.update(any(), any())).thenReturn(Optional.empty());
+    put(Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.NOT_FOUND));
+  }
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").exists()));
-
-    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
+  @ParameterizedTest(name = "{0} => BadRequest")
+  @ValueSource(strings = {"{ invalid json }", "{ }"})
+  @SneakyThrows
+  void updateOrder_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
+    put(body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
-  void updateOrder_WhenInvalidRequestBody_ReturnsBadRequest() {
-    String invalidRequestJson = "{ invalid json }";
-    UUID randomId = UUID.randomUUID();
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidRequestJson))
-                .andExpect(status().isBadRequest()));
-  }
-
-  @Test
-  void updateOrder_WhenValidationFails_ReturnsUnprocessableEntity() throws Exception {
-    UUID randomId = UUID.randomUUID();
-
+  @SneakyThrows
+  void updateOrder_WhenValidationFails_ReturnsUnprocessableEntity() {
+    String message = "Invalid data";
     when(orderService.update(any(UUID.class), any(Order.class)))
-        .thenThrow(new IllegalArgumentException("Invalid data"));
+        .thenThrow(new IllegalArgumentException(message));
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isUnprocessableEntity()));
-
-    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
+    put(Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
-  void updateOrder_WhenDatabaseUnavailable_ReturnsInternalServerError() throws Exception {
-    UUID randomId = UUID.randomUUID();
-
+  @SneakyThrows
+  void updateOrder_WhenDatabaseUnavailable_ReturnsInternalServerError() {
+    String message = "DB unavailable";
     when(orderService.update(any(UUID.class), any(Order.class)))
-        .thenThrow(new RuntimeException("DB unavailable"));
+        .thenThrow(new RuntimeException(message));
 
-    String requestJson = objectMapper.writeValueAsString(buildUpdateOrderRequest());
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    put(ENDPOINT + "/" + randomId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists())
-                .andExpect(jsonPath("$.detailMessage").value("DB unavailable")));
-
-    verify(orderService, times(1)).update(any(UUID.class), any(Order.class));
-  }
-
-  private UpdateOrderRequest buildUpdateOrderRequest() {
-    return Instancio.create(UpdateOrderRequest.class);
+    put(Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

@@ -2,55 +2,55 @@ package it.portus.smartorder.ms.orderservice.api.controllers.orders;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import it.portus.ms.test.controller.AbstractControllerTest;
 import it.portus.smartorder.ms.orderservice.api.config.ControllerTestConfig;
 import it.portus.smartorder.ms.orderservice.api.controller.impl.OrdersApiDelegateImpl;
 import it.portus.smartorder.ms.orderservice.api.v1.openapi.OrdersApiController;
 import it.portus.smartorder.ms.orderservice.api.v1.openapi.model.CreateOrderRequest;
 import it.portus.smartorder.ms.orderservice.business.domain.model.Order;
 import it.portus.smartorder.ms.orderservice.business.services.OrderService;
+import lombok.SneakyThrows;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = OrdersApiController.class)
 @Import({ControllerTestConfig.class, OrdersApiDelegateImpl.class})
 @MockitoBean(types = {CacheManager.class})
-class AddOrderControllerTest {
+class AddOrderControllerTest extends AbstractControllerTest {
 
   private static final String ENDPOINT = "/api/v1/orders";
 
-  @Autowired private MockMvc mockMvc;
   @MockitoBean private OrderService orderService;
 
-  @Autowired private ObjectMapper objectMapper;
+  @Override
+  protected String endpoint() {
+    return ENDPOINT;
+  }
 
   @Test
-  void addOrder_WhenValidOrderProvided_ReturnsCreatedOrder() throws Exception {
+  @SneakyThrows
+  void addOrder_WhenValidOrderProvided_ReturnsCreatedOrder() {
     Order mocked = Instancio.create(Order.class);
 
     when(orderService.save(any(Order.class))).thenReturn(mocked);
 
-    String requestJson = objectMapper.writeValueAsString(buildCreateOrderRequest());
-
     String responseJson =
-        mockMvc
-            .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestJson))
+        post(Instancio.create(CreateOrderRequest.class))
             .andExpect(status().isCreated())
             .andExpect(header().exists(HttpHeaders.LOCATION))
             .andExpect(
@@ -75,86 +75,40 @@ class AddOrderControllerTest {
     assertEquals(mocked.getId(), content.getId());
     assertTrue(response.getLink(IanaLinkRelations.SELF.value()).isPresent());
 
-    verify(orderService, times(1)).save(any(Order.class));
+    verify(orderService).save(any(Order.class));
+  }
+
+  @ParameterizedTest(name = "{0} => BadRequest")
+  @ValueSource(strings = {"{ invalid json }", "{ }"})
+  @SneakyThrows
+  void addOrder_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
+    post(body).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
-  void addOrder_WhenInvalidRequestBody_ReturnsBadRequest() {
-    String invalidRequestJson = "{ invalid json }";
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    post(ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidRequestJson))
-                .andExpect(status().isBadRequest()));
-  }
-
-  @Test
-  void addOrder_WhenRequiredFieldMissing_ReturnsBadRequest() {
-    String requestWithMissingField = "{}";
-
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(
-                    post(ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestWithMissingField))
-                .andExpect(status().isBadRequest()));
-  }
-
-  @Test
+  @SneakyThrows
   void addOrder_WhenInvalidParameterPassed_ReturnsUnprocessableEntity() {
-    when(orderService.save(any(Order.class)))
-        .thenThrow(new IllegalArgumentException("Invalid data"));
+    String message = "Invalid data";
+    when(orderService.save(any(Order.class))).thenThrow(new IllegalArgumentException(message));
 
-    CreateOrderRequest createRequest = buildCreateOrderRequest();
-
-    assertDoesNotThrow(
-        () -> {
-          String requestJson = objectMapper.writeValueAsString(createRequest);
-          mockMvc
-              .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestJson))
-              .andExpect(status().isUnprocessableEntity());
-        });
-
-    verify(orderService, times(1)).save(any(Order.class));
+    post(Instancio.create(CreateOrderRequest.class))
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
+  @SneakyThrows
   void addOrder_WhenDatabaseUnavailable_ReturnsInternalServerErrorWithDetails() {
-    when(orderService.save(any(Order.class))).thenThrow(new RuntimeException("DB unavailable"));
+    String message = "DB unavailable";
+    when(orderService.save(any(Order.class))).thenThrow(new RuntimeException(message));
 
-    CreateOrderRequest createRequest = buildCreateOrderRequest();
-
-    assertDoesNotThrow(
-        () -> {
-          String requestJson = objectMapper.writeValueAsString(createRequest);
-          mockMvc
-              .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestJson))
-              .andExpect(status().isInternalServerError())
-              .andExpect(jsonPath("$.errorCode").exists())
-              .andExpect(jsonPath("$.errorMessage").exists())
-              .andExpect(jsonPath("$.detailMessage").value("DB unavailable"));
-        });
-
-    verify(orderService, times(1)).save(any(Order.class));
+    post(Instancio.create(CreateOrderRequest.class))
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   @Test
+  @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void addOrder_WhenUnauthorized_ReturnsUnauthorized() {
-    assertDoesNotThrow(
-        () ->
-            mockMvc
-                .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isUnauthorized()));
-  }
-
-  private CreateOrderRequest buildCreateOrderRequest() {
-    return Instancio.create(CreateOrderRequest.class);
+    post("{}").andExpect(status().isUnauthorized());
   }
 }
