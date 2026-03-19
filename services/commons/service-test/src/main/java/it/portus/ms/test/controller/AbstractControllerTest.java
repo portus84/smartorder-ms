@@ -29,14 +29,6 @@ public abstract class AbstractControllerTest {
   @Autowired protected ObjectMapper objectMapper;
 
   @SneakyThrows
-  protected <T> ResultActions post(String endpoint, T body, Object... uriVariables) {
-    return mockMvc.perform(
-        MockMvcRequestBuilders.post(endpoint, uriVariables)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(toJsonBody(body)));
-  }
-
-  @SneakyThrows
   protected ResultActions getWithParams(String endpoint, Map<String, String> params) {
     return getWithParams(endpoint, MultiValueMap.fromSingleValue(params));
   }
@@ -69,6 +61,14 @@ public abstract class AbstractControllerTest {
   protected ResultActions get(String endpoint, Object... uriVariables) {
     return mockMvc.perform(
         MockMvcRequestBuilders.get(endpoint, uriVariables).contentType(MediaType.APPLICATION_JSON));
+  }
+
+  @SneakyThrows
+  protected <T> ResultActions post(String endpoint, T body, Object... uriVariables) {
+    return mockMvc.perform(
+        MockMvcRequestBuilders.post(endpoint, uriVariables)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(toJsonBody(body)));
   }
 
   @SneakyThrows
