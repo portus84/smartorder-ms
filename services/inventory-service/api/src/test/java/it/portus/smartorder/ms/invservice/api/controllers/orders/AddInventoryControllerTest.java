@@ -34,11 +34,6 @@ class AddInventoryControllerTest extends AbstractControllerTest {
 
   @MockitoBean private InventoryService inventoryService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void addInventory_WhenValidInventoryProvided_ReturnsCreatedInventory() {
@@ -47,7 +42,7 @@ class AddInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.save(any(Inventory.class))).thenReturn(mocked);
 
     String responseJson =
-        post(Instancio.create(CreateInventoryRequest.class))
+        post(ENDPOINT, Instancio.create(CreateInventoryRequest.class))
             .andExpect(status().isCreated())
             .andExpect(header().exists(HttpHeaders.LOCATION))
             .andExpect(
@@ -76,7 +71,7 @@ class AddInventoryControllerTest extends AbstractControllerTest {
   @ValueSource(strings = {"{ invalid json }", "{ }"})
   @SneakyThrows
   void addInventory_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
-    post(body).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    post(ENDPOINT, body).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -86,7 +81,7 @@ class AddInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.save(any(Inventory.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    post(Instancio.create(CreateInventoryRequest.class))
+    post(ENDPOINT, Instancio.create(CreateInventoryRequest.class))
         .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
@@ -96,7 +91,7 @@ class AddInventoryControllerTest extends AbstractControllerTest {
     String message = "DB unavailable";
     when(inventoryService.save(any(Inventory.class))).thenThrow(new RuntimeException(message));
 
-    post(Instancio.create(CreateInventoryRequest.class))
+    post(ENDPOINT, Instancio.create(CreateInventoryRequest.class))
         .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
@@ -104,6 +99,6 @@ class AddInventoryControllerTest extends AbstractControllerTest {
   @Disabled("Authorization not implemented yet")
   @SneakyThrows
   void addInventory_WhenUnauthorized_ReturnsUnauthorized() {
-    post("{}").andExpect(status().isUnauthorized());
+    post(ENDPOINT, "{}").andExpect(status().isUnauthorized());
   }
 }

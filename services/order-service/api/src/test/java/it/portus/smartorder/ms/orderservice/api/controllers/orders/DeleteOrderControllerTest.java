@@ -30,11 +30,6 @@ class DeleteOrderControllerTest extends AbstractControllerTest {
 
   @MockitoBean private OrderService orderService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void deleteOrder_WhenOrderExists_ReturnsNoContent() {
@@ -42,7 +37,7 @@ class DeleteOrderControllerTest extends AbstractControllerTest {
     when(orderService.findById(id)).thenReturn(Optional.of(Instancio.create(Order.class)));
     doNothing().when(orderService).deleteById(id);
 
-    delete(id).andExpect(status().isNoContent());
+    delete(ENDPOINT, id).andExpect(status().isNoContent());
   }
 
   @Test
@@ -51,13 +46,13 @@ class DeleteOrderControllerTest extends AbstractControllerTest {
     UUID id = UUID.randomUUID();
     when(orderService.findById(id)).thenReturn(Optional.empty());
 
-    delete(id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
+    delete(ENDPOINT, id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
   @Test
   @SneakyThrows
   void deleteOrder_WhenInvalidIdPassed_ReturnsBadRequest() {
-    delete("bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    delete(ENDPOINT, "bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -66,7 +61,8 @@ class DeleteOrderControllerTest extends AbstractControllerTest {
     String message = "Invalid parameter";
     when(orderService.findById(any(UUID.class))).thenThrow(new IllegalArgumentException(message));
 
-    delete(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
+    delete(ENDPOINT, UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
@@ -75,6 +71,7 @@ class DeleteOrderControllerTest extends AbstractControllerTest {
     String message = "DB unavailable";
     when(orderService.findById(any(UUID.class))).thenThrow(new RuntimeException(message));
 
-    delete(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
+    delete(ENDPOINT, UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

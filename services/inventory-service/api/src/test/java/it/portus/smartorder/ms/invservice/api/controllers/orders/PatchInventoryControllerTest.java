@@ -34,11 +34,6 @@ class PatchInventoryControllerTest extends AbstractControllerTest {
 
   @MockitoBean private InventoryService inventoryService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void patchInventory_WhenValidDetailsPatchProvided_ReturnsPatchedInventory() {
@@ -80,7 +75,7 @@ class PatchInventoryControllerTest extends AbstractControllerTest {
   void patchInventory_WhenInventoryDoesNotExist_ReturnsNotFound() {
     when(inventoryService.findById(any(UUID.class))).thenReturn(Optional.empty());
 
-    patch(Instancio.create(InventoryDetailsPatchOperation.class), UUID.randomUUID())
+    patch(ENDPOINT, Instancio.create(InventoryDetailsPatchOperation.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
@@ -98,7 +93,7 @@ class PatchInventoryControllerTest extends AbstractControllerTest {
       })
   @SneakyThrows
   void patchInventory_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
-    patch(body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    patch(ENDPOINT, body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -111,7 +106,7 @@ class PatchInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    patch(Instancio.create(InventoryDetailsPatchOperation.class), existing.getId())
+    patch(ENDPOINT, Instancio.create(InventoryDetailsPatchOperation.class), existing.getId())
         .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
@@ -125,14 +120,14 @@ class PatchInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenThrow(new RuntimeException(message));
 
-    patch(Instancio.create(InventoryDetailsPatchOperation.class), existing.getId())
+    patch(ENDPOINT, Instancio.create(InventoryDetailsPatchOperation.class), existing.getId())
         .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   @SneakyThrows
   private <T> void verifyPatchResponse(T patchOp, Inventory actual, Inventory expected) {
     String responseJson =
-        patch(patchOp, actual.getId())
+        patch(ENDPOINT, patchOp, actual.getId())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())

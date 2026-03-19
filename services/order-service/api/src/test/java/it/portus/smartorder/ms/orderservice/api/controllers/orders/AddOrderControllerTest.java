@@ -37,11 +37,6 @@ class AddOrderControllerTest extends AbstractControllerTest {
 
   @MockitoBean private OrderService orderService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void addOrder_WhenValidOrderProvided_ReturnsCreatedOrder() {
@@ -50,7 +45,7 @@ class AddOrderControllerTest extends AbstractControllerTest {
     when(orderService.save(any(Order.class))).thenReturn(mocked);
 
     String responseJson =
-        post(Instancio.create(CreateOrderRequest.class))
+        post(ENDPOINT, Instancio.create(CreateOrderRequest.class))
             .andExpect(status().isCreated())
             .andExpect(header().exists(HttpHeaders.LOCATION))
             .andExpect(
@@ -82,7 +77,7 @@ class AddOrderControllerTest extends AbstractControllerTest {
   @ValueSource(strings = {"{ invalid json }", "{ }"})
   @SneakyThrows
   void addOrder_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
-    post(body).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    post(ENDPOINT, body).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -91,7 +86,7 @@ class AddOrderControllerTest extends AbstractControllerTest {
     String message = "Invalid data";
     when(orderService.save(any(Order.class))).thenThrow(new IllegalArgumentException(message));
 
-    post(Instancio.create(CreateOrderRequest.class))
+    post(ENDPOINT, Instancio.create(CreateOrderRequest.class))
         .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
@@ -101,7 +96,7 @@ class AddOrderControllerTest extends AbstractControllerTest {
     String message = "DB unavailable";
     when(orderService.save(any(Order.class))).thenThrow(new RuntimeException(message));
 
-    post(Instancio.create(CreateOrderRequest.class))
+    post(ENDPOINT, Instancio.create(CreateOrderRequest.class))
         .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
@@ -109,6 +104,6 @@ class AddOrderControllerTest extends AbstractControllerTest {
   @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void addOrder_WhenUnauthorized_ReturnsUnauthorized() {
-    post("{}").andExpect(status().isUnauthorized());
+    post(ENDPOINT, "{}").andExpect(status().isUnauthorized());
   }
 }

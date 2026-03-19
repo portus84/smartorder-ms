@@ -28,11 +28,6 @@ class DeleteInventoryControllerTest extends AbstractControllerTest {
 
   @MockitoBean private InventoryService inventoryService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void deleteInventory_WhenInventoryExists_ReturnsNoContent() {
@@ -40,7 +35,7 @@ class DeleteInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.findById(id)).thenReturn(Optional.of(Instancio.create(Inventory.class)));
     doNothing().when(inventoryService).deleteById(id);
 
-    delete(id).andExpect(status().isNoContent());
+    delete(ENDPOINT, id).andExpect(status().isNoContent());
   }
 
   @Test
@@ -49,13 +44,13 @@ class DeleteInventoryControllerTest extends AbstractControllerTest {
     UUID id = UUID.randomUUID();
     when(inventoryService.findById(id)).thenReturn(Optional.empty());
 
-    delete(id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
+    delete(ENDPOINT, id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
   @Test
   @SneakyThrows
   void deleteInventory_WhenInvalidIdPassed_ReturnsBadRequest() {
-    delete("bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    delete(ENDPOINT, "bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -65,7 +60,8 @@ class DeleteInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.findById(any(UUID.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    delete(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
+    delete(ENDPOINT, UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
@@ -74,6 +70,7 @@ class DeleteInventoryControllerTest extends AbstractControllerTest {
     String message = "DB unavailable";
     when(inventoryService.findById(any(UUID.class))).thenThrow(new RuntimeException(message));
 
-    delete(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
+    delete(ENDPOINT, UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

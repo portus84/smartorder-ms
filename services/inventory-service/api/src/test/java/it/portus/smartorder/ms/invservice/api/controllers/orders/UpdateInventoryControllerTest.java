@@ -35,11 +35,6 @@ class UpdateInventoryControllerTest extends AbstractControllerTest {
 
   @MockitoBean private InventoryService inventoryService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void updateInventory_WhenValidInventoryProvided_ReturnsUpdatedInventory() {
@@ -49,7 +44,7 @@ class UpdateInventoryControllerTest extends AbstractControllerTest {
         .thenReturn(Optional.of(mocked));
 
     String responseJson =
-        put(Instancio.create(UpdateInventoryRequest.class), mocked.getId())
+        put(ENDPOINT, Instancio.create(UpdateInventoryRequest.class), mocked.getId())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())
@@ -76,7 +71,7 @@ class UpdateInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenReturn(Optional.empty());
 
-    put(Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
+    put(ENDPOINT, Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
@@ -84,7 +79,7 @@ class UpdateInventoryControllerTest extends AbstractControllerTest {
   @ValueSource(strings = {"{ invalid json }", "{ }"})
   @SneakyThrows
   void updateInventory_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
-    put(body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    put(ENDPOINT, body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -94,7 +89,7 @@ class UpdateInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    put(Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
+    put(ENDPOINT, Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
@@ -105,7 +100,7 @@ class UpdateInventoryControllerTest extends AbstractControllerTest {
     when(inventoryService.update(any(UUID.class), any(Inventory.class)))
         .thenThrow(new RuntimeException(message));
 
-    put(Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
+    put(ENDPOINT, Instancio.create(UpdateInventoryRequest.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

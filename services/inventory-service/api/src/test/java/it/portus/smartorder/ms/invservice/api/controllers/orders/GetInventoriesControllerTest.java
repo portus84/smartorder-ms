@@ -45,11 +45,6 @@ class GetInventoriesControllerTest extends AbstractControllerTest {
 
   @Autowired private PageToPagedModelMapper pageToPagedModelMapper;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void getInventories_WhenInventoriesExist_ReturnsAllInventories() {
@@ -60,7 +55,7 @@ class GetInventoriesControllerTest extends AbstractControllerTest {
     when(inventoryService.findAll(any(Pageable.class))).thenReturn(page);
 
     String responseJson =
-        get()
+        get(ENDPOINT)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.inventories", hasSize(contentSize)))
             .andExpect(jsonPath("$.page.totalElements", equalTo(contentSize)))
@@ -94,7 +89,7 @@ class GetInventoriesControllerTest extends AbstractControllerTest {
     when(inventoryService.findAll(any(Pageable.class)))
         .thenReturn(new PageImpl<>(content, pageRequest, contentSize));
 
-    getWithPageRequest(pageRequest)
+    getWithPageRequest(ENDPOINT, pageRequest)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.inventories", hasSize(contentSize)));
 
@@ -104,14 +99,14 @@ class GetInventoriesControllerTest extends AbstractControllerTest {
   @Test
   @SneakyThrows
   void getInventories_WhenPageNumberIsNegative_ReturnsBadRequest() {
-    getWithParams(Map.of("page", "-1")).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    getWithParams(ENDPOINT, Map.of("page", "-1")).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
   @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void getInventories_WhenUnauthorized_ReturnsUnauthorized() {
-    get().andExpect(status().isUnauthorized());
+    get(ENDPOINT).andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -121,7 +116,7 @@ class GetInventoriesControllerTest extends AbstractControllerTest {
     when(inventoryService.findAll(any(Pageable.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    get().andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
+    get(ENDPOINT).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
@@ -130,7 +125,7 @@ class GetInventoriesControllerTest extends AbstractControllerTest {
     String message = "DB unavailable";
     when(inventoryService.findAll(any(Pageable.class))).thenThrow(new RuntimeException(message));
 
-    get().andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
+    get(ENDPOINT).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   private <T> void assertPageEquals(

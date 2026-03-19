@@ -37,11 +37,6 @@ class UpdateOrderControllerTest extends AbstractControllerTest {
 
   @MockitoBean private OrderService orderService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void updateOrder_WhenValidOrderProvided_ReturnsUpdatedOrder() {
@@ -51,7 +46,7 @@ class UpdateOrderControllerTest extends AbstractControllerTest {
         .thenReturn(Optional.of(mockedOrder));
 
     String responseJson =
-        put(Instancio.create(UpdateOrderRequest.class), mockedOrder.getId())
+        put(ENDPOINT, Instancio.create(UpdateOrderRequest.class), mockedOrder.getId())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())
@@ -76,7 +71,7 @@ class UpdateOrderControllerTest extends AbstractControllerTest {
   void updateOrder_WhenOrderDoesNotExist_ReturnsNotFound() {
     when(orderService.update(any(UUID.class), any(Order.class))).thenReturn(Optional.empty());
 
-    put(Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
+    put(ENDPOINT, Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
@@ -84,7 +79,7 @@ class UpdateOrderControllerTest extends AbstractControllerTest {
   @ValueSource(strings = {"{ invalid json }", "{ }"})
   @SneakyThrows
   void updateOrder_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
-    put(body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    put(ENDPOINT, body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -94,7 +89,7 @@ class UpdateOrderControllerTest extends AbstractControllerTest {
     when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    put(Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
+    put(ENDPOINT, Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
@@ -105,7 +100,7 @@ class UpdateOrderControllerTest extends AbstractControllerTest {
     when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new RuntimeException(message));
 
-    put(Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
+    put(ENDPOINT, Instancio.create(UpdateOrderRequest.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 }

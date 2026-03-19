@@ -32,11 +32,6 @@ class GetInventoryByIdControllerTest extends AbstractControllerTest {
 
   @MockitoBean private InventoryService inventoryService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void getInventoryById_WhenInventoryExists_ReturnsInventory() {
@@ -44,7 +39,7 @@ class GetInventoryByIdControllerTest extends AbstractControllerTest {
     when(inventoryService.findById(mocked.getId())).thenReturn(Optional.of(mocked));
 
     String responseJson =
-        get(mocked.getId())
+        get(ENDPOINT, mocked.getId())
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -65,13 +60,13 @@ class GetInventoryByIdControllerTest extends AbstractControllerTest {
     UUID id = UUID.randomUUID();
     when(inventoryService.findById(id)).thenReturn(Optional.empty());
 
-    get(id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
+    get(ENDPOINT, id).andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
   @Test
   @SneakyThrows
   void getInventoryById_WhenInvalidParameterPassed_ReturnsBadRequest() {
-    get("bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    get(ENDPOINT, "bad-id").andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -81,7 +76,8 @@ class GetInventoryByIdControllerTest extends AbstractControllerTest {
     when(inventoryService.findById(any(UUID.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    get(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
+    get(ENDPOINT, UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
@@ -90,13 +86,14 @@ class GetInventoryByIdControllerTest extends AbstractControllerTest {
     String message = "DB unavailable";
     when(inventoryService.findById(any(UUID.class))).thenThrow(new RuntimeException(message));
 
-    get(UUID.randomUUID()).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
+    get(ENDPOINT, UUID.randomUUID())
+        .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   @Test
   @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void getInventoryById_WhenUnauthorized_ReturnsUnauthorized() {
-    get("anyId").andExpect(status().isUnauthorized());
+    get(ENDPOINT, "anyId").andExpect(status().isUnauthorized());
   }
 }

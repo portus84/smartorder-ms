@@ -36,11 +36,6 @@ class PatchOrderControllerTest extends AbstractControllerTest {
 
   @MockitoBean private OrderService orderService;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void patchOrder_WhenValidDetailsPatchProvided_ReturnsPatchedOrder() {
@@ -80,7 +75,7 @@ class PatchOrderControllerTest extends AbstractControllerTest {
   void patchOrder_WhenOrderDoesNotExist_ReturnsNotFound() {
     when(orderService.findById(any(UUID.class))).thenReturn(Optional.empty());
 
-    patch(Instancio.create(OrderDetailsPatchOperation.class), UUID.randomUUID())
+    patch(ENDPOINT, Instancio.create(OrderDetailsPatchOperation.class), UUID.randomUUID())
         .andExpect(errorResponse(HttpStatus.NOT_FOUND));
   }
 
@@ -98,7 +93,7 @@ class PatchOrderControllerTest extends AbstractControllerTest {
       })
   @SneakyThrows
   void patchOrder_WhenInvalidRequestBody_ReturnsBadRequest(String body) {
-    patch(body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    patch(ENDPOINT, body, UUID.randomUUID()).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -111,7 +106,7 @@ class PatchOrderControllerTest extends AbstractControllerTest {
     when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    patch(Instancio.create(OrderDetailsPatchOperation.class), existing.getId())
+    patch(ENDPOINT, Instancio.create(OrderDetailsPatchOperation.class), existing.getId())
         .andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
@@ -125,14 +120,14 @@ class PatchOrderControllerTest extends AbstractControllerTest {
     when(orderService.update(any(UUID.class), any(Order.class)))
         .thenThrow(new RuntimeException(message));
 
-    patch(Instancio.create(OrderDetailsPatchOperation.class), existing.getId())
+    patch(ENDPOINT, Instancio.create(OrderDetailsPatchOperation.class), existing.getId())
         .andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   @SneakyThrows
   private <T> void verifyPatchResponse(T patchOp, Order actual, Order expected) {
     String responseJson =
-        patch(patchOp, actual.getId())
+        patch(ENDPOINT, patchOp, actual.getId())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.createdDate").exists())

@@ -51,11 +51,6 @@ class GetOrdersControllerTest extends AbstractControllerTest {
 
   @Autowired private PageToPagedModelMapper pageToPagedModelMapper;
 
-  @Override
-  protected String endpoint() {
-    return ENDPOINT;
-  }
-
   @Test
   @SneakyThrows
   void getOrders_WhenOrdersExist_ReturnsAllOrders() {
@@ -66,7 +61,7 @@ class GetOrdersControllerTest extends AbstractControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(page);
 
     String responseJson =
-        get()
+        get(ENDPOINT)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.orders", hasSize(contentSize)))
             .andExpect(jsonPath("$.page.totalElements", equalTo(contentSize)))
@@ -100,7 +95,7 @@ class GetOrdersControllerTest extends AbstractControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class)))
         .thenReturn(new PageImpl<>(content, pageRequest, contentSize));
 
-    getWithPageRequest(pageRequest)
+    getWithPageRequest(ENDPOINT, pageRequest)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.orders", hasSize(contentSize)));
 
@@ -121,6 +116,7 @@ class GetOrdersControllerTest extends AbstractControllerTest {
 
     String responseJson =
         getWithParams(
+                ENDPOINT,
                 Map.of(
                     "status",
                     it.portus.smartorder.ms.orderservice.api.v1.openapi.model.OrderStatus.valueOf(
@@ -150,14 +146,14 @@ class GetOrdersControllerTest extends AbstractControllerTest {
   @Test
   @SneakyThrows
   void getOrders_WhenPageNumberIsNegative_ReturnsBadRequest() {
-    getWithParams(Map.of("page", "-1")).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
+    getWithParams(ENDPOINT, Map.of("page", "-1")).andExpect(errorResponse(HttpStatus.BAD_REQUEST));
   }
 
   @Test
   @SneakyThrows
   @Disabled("Authorization not implemented yet")
   void getOrders_WhenUnauthorized_ReturnsUnauthorized() {
-    get().andExpect(status().isUnauthorized());
+    get(ENDPOINT).andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -167,7 +163,7 @@ class GetOrdersControllerTest extends AbstractControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class)))
         .thenThrow(new IllegalArgumentException(message));
 
-    get().andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
+    get(ENDPOINT).andExpect(errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, message));
   }
 
   @Test
@@ -177,7 +173,7 @@ class GetOrdersControllerTest extends AbstractControllerTest {
     when(orderService.findAll(any(Predicate.class), any(Pageable.class)))
         .thenThrow(new RuntimeException(message));
 
-    get().andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
+    get(ENDPOINT).andExpect(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message));
   }
 
   private <T> void assertPageEquals(

@@ -28,25 +28,23 @@ public abstract class AbstractControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired protected ObjectMapper objectMapper;
 
-  protected abstract String endpoint();
-
   @SneakyThrows
-  protected <T> ResultActions post(T body, Object... uriVariables) {
+  protected <T> ResultActions post(String endpoint, T body, Object... uriVariables) {
     return mockMvc.perform(
-        MockMvcRequestBuilders.post(endpoint(), uriVariables)
+        MockMvcRequestBuilders.post(endpoint, uriVariables)
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJsonBody(body)));
   }
 
   @SneakyThrows
-  protected ResultActions getWithParams(Map<String, String> params) {
-    return getWithParams(MultiValueMap.fromSingleValue(params));
+  protected ResultActions getWithParams(String endpoint, Map<String, String> params) {
+    return getWithParams(endpoint, MultiValueMap.fromSingleValue(params));
   }
 
   @SneakyThrows
-  protected ResultActions getWithParams(MultiValueMap<String, String> params) {
+  protected ResultActions getWithParams(String endpoint, MultiValueMap<String, String> params) {
     MockHttpServletRequestBuilder builder =
-        MockMvcRequestBuilders.get(endpoint()).contentType(MediaType.APPLICATION_JSON);
+        MockMvcRequestBuilders.get(endpoint).contentType(MediaType.APPLICATION_JSON);
 
     params.forEach((key, values) -> values.forEach(v -> builder.param(key, v)));
 
@@ -54,8 +52,9 @@ public abstract class AbstractControllerTest {
   }
 
   @SneakyThrows
-  protected ResultActions getWithPageRequest(PageRequest pageRequest) {
+  protected ResultActions getWithPageRequest(String endpoint, PageRequest pageRequest) {
     return getWithParams(
+        endpoint,
         MultiValueMap.fromMultiValue(
             Map.of(
                 "page", List.of(String.valueOf(pageRequest.getPageNumber())),
@@ -67,32 +66,31 @@ public abstract class AbstractControllerTest {
   }
 
   @SneakyThrows
-  protected ResultActions get(Object... uriVariables) {
+  protected ResultActions get(String endpoint, Object... uriVariables) {
     return mockMvc.perform(
-        MockMvcRequestBuilders.get(endpoint(), uriVariables)
-            .contentType(MediaType.APPLICATION_JSON));
+        MockMvcRequestBuilders.get(endpoint, uriVariables).contentType(MediaType.APPLICATION_JSON));
   }
 
   @SneakyThrows
-  protected <T> ResultActions put(T body, Object... uriVariables) {
+  protected <T> ResultActions put(String endpoint, T body, Object... uriVariables) {
     return mockMvc.perform(
-        MockMvcRequestBuilders.put(endpoint(), uriVariables)
+        MockMvcRequestBuilders.put(endpoint, uriVariables)
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJsonBody(body)));
   }
 
   @SneakyThrows
-  protected <T> ResultActions patch(T body, Object... uriVariables) {
+  protected <T> ResultActions patch(String endpoint, T body, Object... uriVariables) {
     return mockMvc.perform(
-        MockMvcRequestBuilders.patch(endpoint(), uriVariables)
+        MockMvcRequestBuilders.patch(endpoint, uriVariables)
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJsonBody(body)));
   }
 
   @SneakyThrows
-  protected ResultActions delete(Object... uriVariables) {
+  protected ResultActions delete(String endpoint, Object... uriVariables) {
     return mockMvc.perform(
-        MockMvcRequestBuilders.delete(endpoint(), uriVariables)
+        MockMvcRequestBuilders.delete(endpoint, uriVariables)
             .contentType(MediaType.APPLICATION_JSON));
   }
 
