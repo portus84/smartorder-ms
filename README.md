@@ -30,6 +30,25 @@ implementation details.
 
 ---
 
+## C4 Context Diagram
+
+To better understand how **SmartOrder** fits within its ecosystem, the following ***C4 Context Diagram*** provides a high-level view of the system, its users, and external dependencies.
+
+The diagram illustrates:
+
+* The **SmartOrder platform as a whole system**
+* **External actors** (e.g., users, client applications)
+* **Third-party systems and integrations**
+* **The main interaction boundaries** between the platform and the outside world
+
+This perspective is the starting point of the ***C4 model***, helping readers quickly grasp what the system does and how it interacts externally, before diving into containers and microservices internals.
+
+|               *System Context (C4 Context)*                |
+|:----------------------------------------------------------:|
+| ![System Context (C4 Context](./docs/diagrams/context.svg) |
+
+---
+
 ## 🎯 Project Goals
 
 - Provide a realistic microservices reference architecture
